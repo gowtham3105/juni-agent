@@ -14,17 +14,26 @@ from utils import get_recency_bucket
 class ComplianceAgent:
     """Main compliance agent for AML/KYC adverse media review"""
     
-    def __init__(self):
+    def __init__(self, progress_callback=None):
         self.config = Config()
         self.anchor_extractor = AnchorExtractor()
         self.name_matcher = NameMatcher()
         self.decision_engine = DecisionEngine()
+        self.progress_callback = progress_callback
+        self.step_counter = 0
+    
+    def _log_progress(self, message: str):
+        """Log progress step and call callback if provided"""
+        self.step_counter += 1
+        full_message = f"Step {self.step_counter}: {message}"
+        print(full_message)
+        if self.progress_callback:
+            self.progress_callback(full_message)
     
     def process_compliance_check(self, user_profile: UserProfile, media_hits: List[MediaHit]) -> ComplianceResult:
         """Process complete compliance check following the 18-step SOP"""
         
-        print(f"Step 1) Case intake - Subject: {user_profile.full_name}, DOB {user_profile.date_of_birth}, "
-              f"city {user_profile.city}, employer {user_profile.employer}. Vendor hits: {len(media_hits)} articles.")
+        self._log_progress(f"Case intake - Subject: {user_profile.full_name}, DOB {user_profile.date_of_birth}, city {user_profile.city}, employer {user_profile.employer}. Vendor hits: {len(media_hits)} articles.")
         
         analyzed_articles = []
         
@@ -34,14 +43,18 @@ class ComplianceAgent:
             analyzed_articles.append(article_analysis)
         
         # Step 14) Cluster duplicates (simplified - no actual clustering implemented)
+        self._log_progress(f"🔄 Checking for duplicate articles...")
         deduplicated_articles = self._cluster_duplicates(analyzed_articles)
         
         # Step 15) Case roll-up - keep only yes/maybe articles
         accepted_articles = [a for a in deduplicated_articles if a.linkage_decision in [LinkageDecision.YES, LinkageDecision.MAYBE]]
         rejected_articles = [a for a in deduplicated_articles if a.linkage_decision == LinkageDecision.NO]
+        self._log_progress(f"📋 Case roll-up: {len(accepted_articles)} matched, {len(rejected_articles)} rejected")
         
         # Step 16) Overall decision logic
+        self._log_progress(f"🎯 Calculating final compliance decision...")
         final_decision, decision_score, overall_rationale = self._make_overall_decision(accepted_articles)
+        self._log_progress(f"🏁 Final Decision: {final_decision.upper()} (score: {decision_score}/100)")
         
         # Step 17) Targeted ask
         targeted_ask = self._generate_targeted_ask(accepted_articles) if final_decision == "escalate" else None
@@ -66,22 +79,32 @@ class ComplianceAgent:
         """Analyze a single article following steps 2-13 of the SOP"""
         
         # Step 2) Read article & Step 3) Collect anchors
-        print(f"Step 2-3) Analyzing article: {hit.title}")
+        self._log_progress(f"📄 Analyzing article: '{hit.title}'")
+        self._log_progress(f"🤖 AI extracting identity anchors from article content...")
         brief_summary, anchors = self.anchor_extractor.extract_anchors_and_summary(hit, user_profile)
+        self._log_progress(f"✅ Found {len(anchors)} identity anchors: {', '.join([f'{a.anchor_type}:{a.value}' for a in anchors[:3]])}{' ...' if len(anchors) > 3 else ''}")
         
         # Step 4) Name match sanity
+        self._log_progress(f"🤖 AI analyzing name matches (handles nicknames, cultural variants)...")
         has_name_match, name_analysis, required_anchors = self.name_matcher.analyze_name_match(user_profile, anchors)
+        self._log_progress(f"👤 Name analysis: {name_analysis}")
         
-        # Step 5) Anchor test
+        # Step 5) Anchor test  
+        self._log_progress(f"🤖 AI verifying each anchor against user profile (contextual matching)...")
         verifications = self.decision_engine.verify_anchors(user_profile, anchors, hit.date)
+        matches = [v for v in verifications if v.matches]
+        conflicts = [v for v in verifications if v.conflict]
+        self._log_progress(f"🔍 Anchor verification: {len(matches)} matches, {len(conflicts)} conflicts")
         
         # Step 6) Contradiction scan
         contradictions = self.decision_engine.detect_contradictions(verifications)
         
         # Step 7) Linkage decision
+        self._log_progress(f"⚖️ Making linkage decision based on evidence...")
         linkage_decision, linkage_rationale = self.decision_engine.make_linkage_decision(
             user_profile, anchors, verifications, contradictions, required_anchors, has_name_match
         )
+        self._log_progress(f"📊 Decision: {linkage_decision.value} - {linkage_rationale}")
         
         # Skip outcome and category classification as requested by user
         outcome_type = OutcomeType.NONE

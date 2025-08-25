@@ -35,6 +35,15 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 # Initialize compliance agent
 agent = ComplianceAgent()
 
+# Progress tracking for real-time updates
+progress_logs = []
+
+def progress_callback(message: str):
+    """Callback to track progress logs"""
+    global progress_logs
+    progress_logs.append(message)
+    print(f"[PROGRESS] {message}")
+
 
 class ComplianceRequest(BaseModel):
     """Request model for compliance check"""
@@ -72,8 +81,15 @@ async def process_compliance_check(request: ComplianceRequest):
     try:
         start_time = datetime.now()
 
-        # Process compliance check using the existing agent
-        result = agent.process_compliance_check(request.user_profile,
+        # Reset progress logs and create agent with callback
+        global progress_logs
+        progress_logs = []
+        
+        # Create agent instance with progress callback
+        progress_agent = ComplianceAgent(progress_callback=progress_callback)
+        
+        # Process compliance check using the progress agent
+        result = progress_agent.process_compliance_check(request.user_profile,
                                                 request.media_hits)
 
         processing_time = (datetime.now() - start_time).total_seconds()
@@ -92,6 +108,12 @@ async def process_compliance_check(request: ComplianceRequest):
         raise HTTPException(
             status_code=500,
             detail=f"Error processing compliance check: {str(e)}")
+
+@app.get("/compliance/progress")
+async def get_progress():
+    """Get current progress logs"""
+    global progress_logs
+    return {"logs": progress_logs}
 
 
 @app.get("/compliance/sample")

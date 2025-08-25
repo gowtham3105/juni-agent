@@ -373,6 +373,9 @@
             document.getElementById('loading-container').style.display = 'block';
             hideError();
             
+            // Start real-time progress monitoring
+            const progressInterval = startProgressMonitoring();
+            
             try {
                 const response = await fetch('/compliance/check', {
                     method: 'POST',
@@ -381,6 +384,8 @@
                     },
                     body: JSON.stringify(formData)
                 });
+                
+                clearInterval(progressInterval);
                 
                 if (!response.ok) {
                     throw new Error(`HTTP error! status: ${response.status}`);
@@ -395,9 +400,45 @@
                     showForm();
                 }
             } catch (error) {
+                clearInterval(progressInterval);
                 showError('Network error: ' + error.message);
                 showForm();
             }
+        }
+        
+        function startProgressMonitoring() {
+            const progressContainer = document.getElementById('progress-logs');
+            if (!progressContainer) {
+                // Create progress logs container
+                const loadingContainer = document.getElementById('loading-container');
+                const logsDiv = document.createElement('div');
+                logsDiv.id = 'progress-logs';
+                logsDiv.className = 'mt-8 bg-gray-50 border rounded-lg p-4 max-h-64 overflow-y-auto';
+                logsDiv.innerHTML = '<h4 class="font-semibold text-gray-900 mb-2">🔄 Live Analysis Progress:</h4><div id="log-entries" class="space-y-1 font-mono text-sm"></div>';
+                loadingContainer.appendChild(logsDiv);
+            }
+            
+            return setInterval(async () => {
+                try {
+                    const response = await fetch('/compliance/progress');
+                    const data = await response.json();
+                    
+                    const logEntries = document.getElementById('log-entries');
+                    if (logEntries && data.logs) {
+                        logEntries.innerHTML = data.logs.map(log => 
+                            `<div class="text-gray-700 py-1 border-b border-gray-200">${log}</div>`
+                        ).join('');
+                        
+                        // Auto-scroll to bottom
+                        const progressContainer = document.getElementById('progress-logs');
+                        if (progressContainer) {
+                            progressContainer.scrollTop = progressContainer.scrollHeight;
+                        }
+                    }
+                } catch (error) {
+                    console.error('Error fetching progress:', error);
+                }
+            }, 500); // Update every 500ms
         }
 
         function displayResults(result) {
