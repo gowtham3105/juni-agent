@@ -4,267 +4,373 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AI Compliance Agent</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: #f5f7fa;
-            padding: 20px;
-        }
-        
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-        
-        .header {
-            text-align: center;
-            margin-bottom: 40px;
-            padding: 30px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border-radius: 12px;
-        }
-        
-        .header h1 {
-            font-size: 2.5em;
-            margin-bottom: 10px;
-        }
-        
-        .card {
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            padding: 30px;
-            margin-bottom: 20px;
-        }
-        
-        .form-group {
-            margin-bottom: 20px;
-        }
-        
-        .form-group label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 600;
-            color: #374151;
-        }
-        
-        .form-group input, .form-group textarea {
-            width: 100%;
-            padding: 12px;
-            border: 2px solid #e5e7eb;
-            border-radius: 8px;
-            font-size: 1em;
-        }
-        
-        .form-group input:focus, .form-group textarea:focus {
-            outline: none;
-            border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-        }
-        
-        .form-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 20px;
-            margin-bottom: 20px;
-        }
-        
-        .btn {
-            padding: 12px 24px;
-            border: none;
-            border-radius: 8px;
-            font-size: 1em;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-        
-        .btn-primary {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-        }
-        
-        .btn-secondary {
-            background: #f3f4f6;
-            color: #374151;
-            border: 2px solid #e5e7eb;
-        }
-        
-        .btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-        }
-        
-        .btn:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-            transform: none;
-        }
-        
-        .results {
-            display: none;
-        }
-        
-        .results.show {
-            display: block;
-            animation: fadeIn 0.5s ease-in-out;
-        }
-        
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        
-        .status-badge {
-            padding: 8px 16px;
-            border-radius: 20px;
-            color: white;
-            font-weight: 700;
-            text-transform: uppercase;
-            display: inline-block;
-            margin: 10px 0;
-        }
-        
-        .status-clear { background: #22c55e; }
-        .status-escalate { background: #f59e0b; }
-        .status-decline { background: #ef4444; }
-        
-        .article-card {
-            border: 2px solid #e5e7eb;
-            border-radius: 12px;
-            margin-bottom: 20px;
-            overflow: hidden;
-        }
-        
-        .article-header {
-            background: #f9fafb;
-            padding: 20px;
-            border-bottom: 2px solid #e5e7eb;
-        }
-        
-        .article-content {
-            padding: 20px;
-        }
-        
-        .loading {
-            text-align: center;
-            padding: 40px;
-            color: #6b7280;
-        }
-        
-        .error {
-            background: #fef2f2;
-            color: #dc2626;
-            padding: 15px;
-            border: 2px solid #fecaca;
-            border-radius: 8px;
-            margin: 20px 0;
-        }
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        .step-indicator { transition: all 0.3s ease; }
+        .step-indicator.active { background: #3b82f6; color: white; }
+        .step-indicator.completed { background: #10b981; color: white; }
+        .anchor-match { background: #d1fae5; border-color: #10b981; }
+        .anchor-no-match { background: #fee2e2; border-color: #ef4444; }
+        .anchor-partial { background: #fef3c7; border-color: #f59e0b; }
     </style>
 </head>
-<body>
-    <div class="container">
-        <div class="header">
-            <h1>🛡️ AI Compliance Agent</h1>
-            <p>AML/KYC Adverse Media Review System</p>
+<body class="bg-gray-50 min-h-screen">
+    <div class="max-w-7xl mx-auto px-4 py-8">
+        <!-- Header -->
+        <div class="text-center mb-8">
+            <div class="bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl p-8 mb-8">
+                <h1 class="text-4xl font-bold mb-4">🛡️ AI Compliance Agent</h1>
+                <p class="text-xl opacity-90">AML/KYC Adverse Media Review System</p>
+            </div>
         </div>
-        
-        <div class="card">
-            <div id="compliance-form">
-                <h2>👤 User Profile</h2>
-                <div class="form-grid">
-                    <div class="form-group">
-                        <label for="full_name">Full Name *</label>
-                        <input type="text" id="full_name" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="date_of_birth">Date of Birth</label>
-                        <input type="date" id="date_of_birth">
-                    </div>
-                    <div class="form-group">
-                        <label for="city">City</label>
-                        <input type="text" id="city">
-                    </div>
-                    <div class="form-group">
-                        <label for="employer">Employer</label>
-                        <input type="text" id="employer">
-                    </div>
+
+        <!-- Main Content -->
+        <div id="form-container" class="space-y-8">
+            <!-- User Profile Section -->
+            <div class="bg-white rounded-xl shadow-lg p-6">
+                <div class="flex items-center gap-3 mb-6">
+                    <i data-lucide="user" class="w-6 h-6 text-blue-600"></i>
+                    <h2 class="text-2xl font-bold text-gray-900">User Profile</h2>
                 </div>
                 
-                <h2>📄 Media Hit</h2>
-                <div class="form-group">
-                    <label for="article_title">Article Title *</label>
-                    <input type="text" id="article_title" required>
-                </div>
-                <div class="form-grid">
-                    <div class="form-group">
-                        <label for="article_source">Source *</label>
-                        <input type="text" id="article_source" required>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Full Name *</label>
+                        <input type="text" id="full_name" required 
+                               class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                     </div>
-                    <div class="form-group">
-                        <label for="article_date">Date *</label>
-                        <input type="date" id="article_date" required>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Date of Birth</label>
+                        <input type="date" id="date_of_birth" 
+                               class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">City</label>
+                        <input type="text" id="city" 
+                               class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Employer</label>
+                        <input type="text" id="employer" 
+                               class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    </div>
+                    <div class="md:col-span-2">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Aliases (comma-separated)</label>
+                        <input type="text" id="aliases" placeholder="John Smith, J. Smith, Johnny" 
+                               class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                     </div>
                 </div>
-                <div class="form-group">
-                    <label for="article_content">Article Content/Snippet</label>
-                    <textarea id="article_content" rows="6" placeholder="Paste the article content here..."></textarea>
+            </div>
+
+            <!-- Media Hits Section -->
+            <div class="bg-white rounded-xl shadow-lg p-6">
+                <div class="flex items-center justify-between mb-6">
+                    <div class="flex items-center gap-3">
+                        <i data-lucide="newspaper" class="w-6 h-6 text-blue-600"></i>
+                        <h2 class="text-2xl font-bold text-gray-900">Media Hits</h2>
+                    </div>
+                    <button onclick="addMediaHit()" 
+                            class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors flex items-center gap-2">
+                        <i data-lucide="plus" class="w-4 h-4"></i>
+                        Add Hit
+                    </button>
                 </div>
                 
-                <div style="display: flex; gap: 10px; margin-top: 20px;">
-                    <button class="btn btn-primary" onclick="runComplianceCheck()">🔍 Run Compliance Check</button>
-                    <button class="btn btn-secondary" onclick="loadSampleData()">Load Sample Data</button>
+                <div id="media-hits-container" class="space-y-6">
+                    <!-- Media hits will be added here -->
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="bg-white rounded-xl shadow-lg p-6">
+                <div class="flex flex-wrap gap-4">
+                    <button onclick="runComplianceCheck()" 
+                            class="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-8 py-3 rounded-lg font-semibold transition-all flex items-center gap-2">
+                        <i data-lucide="search" class="w-5 h-5"></i>
+                        Run Compliance Check
+                    </button>
+                    <button onclick="loadSampleData()" 
+                            class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-6 py-3 rounded-lg font-semibold transition-colors flex items-center gap-2">
+                        <i data-lucide="download" class="w-5 h-5"></i>
+                        Load Sample Data
+                    </button>
                 </div>
                 
-                <div id="error-message" style="display: none;"></div>
+                <div id="error-message" class="hidden mt-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+                    <div class="flex items-center gap-2">
+                        <i data-lucide="alert-circle" class="w-5 h-5 text-red-600"></i>
+                        <span id="error-text" class="text-red-800 font-medium"></span>
+                    </div>
+                </div>
             </div>
-            
-            <div id="loading" class="loading" style="display: none;">
-                <h3>🔄 Analyzing...</h3>
-                <p>The AI is extracting identity anchors and performing compliance checks...</p>
+        </div>
+
+        <!-- Loading State -->
+        <div id="loading-container" class="hidden">
+            <div class="bg-white rounded-xl shadow-lg p-8">
+                <div class="text-center">
+                    <div class="animate-spin w-12 h-12 mx-auto mb-4 text-blue-600">
+                        <i data-lucide="loader" class="w-full h-full"></i>
+                    </div>
+                    <h3 class="text-2xl font-bold text-gray-900 mb-2">🔄 Analyzing...</h3>
+                    <p class="text-gray-600">The AI is extracting identity anchors and performing compliance checks...</p>
+                </div>
+
+                <!-- Progress Steps -->
+                <div id="progress-steps" class="mt-8 max-w-2xl mx-auto">
+                    <div class="flex items-center justify-between">
+                        <div class="step-indicator w-12 h-12 rounded-full flex items-center justify-center bg-gray-200 text-gray-600 font-semibold">1</div>
+                        <div class="flex-1 h-0.5 bg-gray-200 mx-4"></div>
+                        <div class="step-indicator w-12 h-12 rounded-full flex items-center justify-center bg-gray-200 text-gray-600 font-semibold">2</div>
+                        <div class="flex-1 h-0.5 bg-gray-200 mx-4"></div>
+                        <div class="step-indicator w-12 h-12 rounded-full flex items-center justify-center bg-gray-200 text-gray-600 font-semibold">3</div>
+                    </div>
+                    <div class="flex items-center justify-between mt-2 text-sm text-gray-600">
+                        <div class="text-center">Extract Anchors</div>
+                        <div class="text-center">Verify Matches</div>
+                        <div class="text-center">Final Decision</div>
+                    </div>
+                </div>
             </div>
-            
-            <div id="results" class="results">
-                <!-- Results will be populated here -->
-            </div>
+        </div>
+
+        <!-- Results Section -->
+        <div id="results-container" class="hidden space-y-8">
+            <!-- Results will be populated here -->
         </div>
     </div>
-    
+
     <script>
+        let mediaHitCount = 0;
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            lucide.createIcons();
+            addMediaHit(); // Add initial media hit
+        });
+
+        function addMediaHit() {
+            mediaHitCount++;
+            const container = document.getElementById('media-hits-container');
+            const hitDiv = document.createElement('div');
+            hitDiv.className = 'border border-gray-200 rounded-lg p-6';
+            hitDiv.id = `media-hit-${mediaHitCount}`;
+            
+            hitDiv.innerHTML = `
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-lg font-semibold text-gray-900">Article ${mediaHitCount}</h3>
+                    ${mediaHitCount > 1 ? `<button onclick="removeMediaHit(${mediaHitCount})" class="text-red-600 hover:text-red-800 p-2"><i data-lucide="trash-2" class="w-4 h-4"></i></button>` : ''}
+                </div>
+                
+                <!-- URL Input -->
+                <div class="mb-4">
+                    <div class="flex gap-2">
+                        <input type="url" id="url-${mediaHitCount}" placeholder="Paste article URL here..." 
+                               class="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        <button onclick="fetchFromUrl(${mediaHitCount})" 
+                                class="bg-green-600 hover:bg-green-700 text-white px-4 py-3 rounded-lg transition-colors flex items-center gap-2">
+                            <i data-lucide="globe" class="w-4 h-4"></i>
+                            Fetch
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="text-center text-gray-500 mb-4">
+                    <div class="flex items-center">
+                        <div class="flex-1 border-t border-gray-300"></div>
+                        <span class="px-4 text-sm">OR manually enter details</span>
+                        <div class="flex-1 border-t border-gray-300"></div>
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Title *</label>
+                        <input type="text" id="title-${mediaHitCount}" required 
+                               class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Source *</label>
+                        <input type="text" id="source-${mediaHitCount}" required 
+                               class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Date *</label>
+                        <input type="date" id="date-${mediaHitCount}" required 
+                               class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">URL</label>
+                        <input type="url" id="article-url-${mediaHitCount}" 
+                               class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Article Content</label>
+                    <textarea id="content-${mediaHitCount}" rows="6" placeholder="Paste the full article content here..."
+                              class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"></textarea>
+                </div>
+            `;
+            
+            container.appendChild(hitDiv);
+            lucide.createIcons();
+        }
+
+        function removeMediaHit(id) {
+            const hitDiv = document.getElementById(`media-hit-${id}`);
+            if (hitDiv) {
+                hitDiv.remove();
+            }
+        }
+
+        async function fetchFromUrl(hitId) {
+            const urlInput = document.getElementById(`url-${hitId}`);
+            const url = urlInput.value.trim();
+            
+            if (!url) {
+                showError('Please enter a URL first');
+                return;
+            }
+
+            const button = event.target.closest('button');
+            const originalText = button.innerHTML;
+            button.innerHTML = '<i data-lucide="loader" class="w-4 h-4 animate-spin"></i> Fetching...';
+            button.disabled = true;
+
+            try {
+                const response = await fetch('/compliance/fetch-url', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ url: url })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Failed to fetch URL: ${response.status}`);
+                }
+
+                const data = await response.json();
+                
+                if (data.success) {
+                    document.getElementById(`title-${hitId}`).value = data.title;
+                    document.getElementById(`source-${hitId}`).value = data.source;
+                    document.getElementById(`content-${hitId}`).value = data.content;
+                    document.getElementById(`article-url-${hitId}`).value = data.url;
+                    
+                    // Set today's date as default
+                    const today = new Date().toISOString().split('T')[0];
+                    document.getElementById(`date-${hitId}`).value = today;
+                    
+                    showSuccess('Article fetched successfully!');
+                } else {
+                    throw new Error(data.message || 'Failed to fetch article');
+                }
+            } catch (error) {
+                showError(`Error fetching article: ${error.message}`);
+            } finally {
+                button.innerHTML = originalText;
+                button.disabled = false;
+                lucide.createIcons();
+            }
+        }
+
         async function loadSampleData() {
             try {
                 const response = await fetch('/compliance/sample');
                 const data = await response.json();
                 
+                // Fill user profile
                 document.getElementById('full_name').value = data.user_profile.full_name;
                 document.getElementById('date_of_birth').value = data.user_profile.date_of_birth;
                 document.getElementById('city').value = data.user_profile.city;
                 document.getElementById('employer').value = data.user_profile.employer;
+                document.getElementById('aliases').value = data.user_profile.aliases.join(', ');
                 
-                if (data.media_hits && data.media_hits.length > 0) {
-                    const hit = data.media_hits[0];
-                    document.getElementById('article_title').value = hit.title;
-                    document.getElementById('article_source').value = hit.source;
-                    document.getElementById('article_date').value = hit.date;
-                    document.getElementById('article_content').value = hit.full_text || hit.snippet || '';
-                }
+                // Clear existing media hits and add sample ones
+                document.getElementById('media-hits-container').innerHTML = '';
+                mediaHitCount = 0;
+                
+                data.media_hits.forEach((hit, index) => {
+                    addMediaHit();
+                    const currentId = mediaHitCount;
+                    document.getElementById(`title-${currentId}`).value = hit.title;
+                    document.getElementById(`source-${currentId}`).value = hit.source;
+                    document.getElementById(`date-${currentId}`).value = hit.date;
+                    document.getElementById(`content-${currentId}`).value = hit.full_text || hit.snippet || '';
+                    if (hit.url) {
+                        document.getElementById(`article-url-${currentId}`).value = hit.url;
+                    }
+                });
+                
+                showSuccess('Sample data loaded successfully!');
             } catch (error) {
                 showError('Failed to load sample data: ' + error.message);
             }
         }
-        
+
+        function collectFormData() {
+            const fullName = document.getElementById('full_name').value.trim();
+            if (!fullName) {
+                showError('Please enter a full name');
+                return null;
+            }
+            
+            const aliases = document.getElementById('aliases').value.split(',').map(a => a.trim()).filter(a => a);
+            
+            const userProfile = {
+                full_name: fullName,
+                date_of_birth: document.getElementById('date_of_birth').value || null,
+                city: document.getElementById('city').value || null,
+                employer: document.getElementById('employer').value || null,
+                aliases: aliases
+            };
+            
+            const mediaHits = [];
+            const hitElements = document.querySelectorAll('[id^="media-hit-"]');
+            
+            for (let hitElement of hitElements) {
+                const id = hitElement.id.split('-')[2];
+                const title = document.getElementById(`title-${id}`).value.trim();
+                const source = document.getElementById(`source-${id}`).value.trim();
+                const date = document.getElementById(`date-${id}`).value;
+                
+                if (!title || !source || !date) {
+                    showError(`Please fill in all required fields for Article ${id}`);
+                    return null;
+                }
+                
+                mediaHits.push({
+                    title: title,
+                    snippet: document.getElementById(`content-${id}`).value || null,
+                    date: date,
+                    source: source,
+                    url: document.getElementById(`article-url-${id}`).value || null,
+                    hit_type: 'adverse_media'
+                });
+            }
+            
+            if (mediaHits.length === 0) {
+                showError('Please add at least one media hit');
+                return null;
+            }
+            
+            return {
+                user_profile: userProfile,
+                media_hits: mediaHits
+            };
+        }
+
         async function runComplianceCheck() {
             const formData = collectFormData();
             if (!formData) return;
             
-            showLoading();
+            document.getElementById('form-container').style.display = 'none';
+            document.getElementById('results-container').style.display = 'none';
+            document.getElementById('loading-container').style.display = 'block';
             hideError();
             
             try {
@@ -286,150 +392,301 @@
                     displayResults(data.result);
                 } else {
                     showError(data.message || 'Unknown error occurred');
+                    showForm();
                 }
             } catch (error) {
                 showError('Network error: ' + error.message);
-            } finally {
-                hideLoading();
+                showForm();
             }
         }
-        
-        function collectFormData() {
-            const fullName = document.getElementById('full_name').value.trim();
-            const articleTitle = document.getElementById('article_title').value.trim();
-            const articleSource = document.getElementById('article_source').value.trim();
-            const articleDate = document.getElementById('article_date').value;
-            
-            if (!fullName || !articleTitle || !articleSource || !articleDate) {
-                showError('Please fill in all required fields (marked with *)');
-                return null;
-            }
-            
-            return {
-                user_profile: {
-                    full_name: fullName,
-                    date_of_birth: document.getElementById('date_of_birth').value || null,
-                    city: document.getElementById('city').value || null,
-                    employer: document.getElementById('employer').value || null,
-                    aliases: []
-                },
-                media_hits: [{
-                    title: articleTitle,
-                    snippet: document.getElementById('article_content').value || null,
-                    date: articleDate,
-                    source: articleSource,
-                    hit_type: 'adverse_media'
-                }]
-            };
-        }
-        
+
         function displayResults(result) {
-            const resultsDiv = document.getElementById('results');
-            const statusClass = 'status-' + result.final_decision.toLowerCase();
+            const container = document.getElementById('results-container');
+            container.innerHTML = generateResultsHTML(result);
             
-            resultsDiv.innerHTML = `
-                <h2>🔍 Analysis Results</h2>
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin: 20px 0;">
-                    <div style="text-align: center; padding: 20px; background: #f9fafb; border-radius: 12px;">
-                        <div class="status-badge ${statusClass}">${result.final_decision}</div>
-                        <p>Final Decision</p>
-                    </div>
-                    <div style="text-align: center; padding: 20px; background: #f9fafb; border-radius: 12px;">
-                        <h3>${result.decision_score}/100</h3>
-                        <p>Risk Score</p>
-                    </div>
-                    <div style="text-align: center; padding: 20px; background: #f9fafb; border-radius: 12px;">
-                        <h3>${result.matched_hits.length}</h3>
-                        <p>Matched Articles</p>
-                    </div>
-                </div>
-                
-                <div style="background: #f9fafb; padding: 20px; border-radius: 12px; margin: 20px 0;">
-                    <h3>📝 Assessment</h3>
-                    <p style="margin: 10px 0; line-height: 1.6;">${result.overall_rationale}</p>
-                </div>
-                
-                <div style="margin: 20px 0;">
-                    <h3>📰 Article Analysis</h3>
-                    ${result.analyzed_articles.map(article => `
-                        <div class="article-card">
-                            <div class="article-header">
-                                <h4>${article.hit.title}</h4>
-                                <div style="color: #6b7280; margin: 10px 0;">
-                                    ${article.hit.source} • ${article.hit.date}
-                                    <span class="status-badge" style="background: ${getLinkageColor(article.linkage_decision)};">
-                                        ${article.linkage_decision.toUpperCase()}
-                                    </span>
-                                </div>
+            document.getElementById('loading-container').style.display = 'none';
+            container.style.display = 'block';
+            lucide.createIcons();
+        }
+
+        function generateResultsHTML(result) {
+            const getDecisionColor = (decision) => {
+                switch (decision.toLowerCase()) {
+                    case 'clear': return 'bg-green-100 text-green-800 border-green-200';
+                    case 'escalate': return 'bg-yellow-100 text-yellow-800 border-yellow-200';
+                    case 'decline': return 'bg-red-100 text-red-800 border-red-200';
+                    default: return 'bg-gray-100 text-gray-800 border-gray-200';
+                }
+            };
+
+            const getLinkageBadgeClass = (linkage) => {
+                switch (linkage) {
+                    case 'yes': return 'bg-red-100 text-red-800 border-red-200';
+                    case 'maybe': return 'bg-yellow-100 text-yellow-800 border-yellow-200';
+                    case 'no': return 'bg-green-100 text-green-800 border-green-200';
+                    default: return 'bg-gray-100 text-gray-800 border-gray-200';
+                }
+            };
+
+            return `
+                <!-- Results Header -->
+                <div class="bg-white rounded-xl shadow-lg p-8">
+                    <div class="text-center mb-8">
+                        <h2 class="text-3xl font-bold text-gray-900 mb-4">🔍 Compliance Analysis Results</h2>
+                        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                            <div class="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-4">
+                                <div class="text-2xl font-bold text-blue-900">${result.total_hits}</div>
+                                <div class="text-sm text-blue-700">Total Articles</div>
                             </div>
-                            <div class="article-content">
-                                <p><strong>Summary:</strong> ${article.brief_summary}</p>
-                                ${article.anchors.length > 0 ? `
-                                    <div style="margin: 15px 0;">
-                                        <strong>Identity Anchors Found (${article.anchors.length}):</strong>
-                                        <div style="margin-top: 10px;">
-                                            ${article.anchors.map(anchor => 
-                                                `<span style="background: #f3f4f6; padding: 4px 8px; border-radius: 4px; margin: 2px; display: inline-block;">
-                                                    ${anchor.anchor_type}: ${anchor.value} (${Math.round(anchor.confidence * 100)}%)
-                                                </span>`
-                                            ).join('')}
-                                        </div>
-                                    </div>
-                                ` : ''}
-                                ${article.contradictions && article.contradictions.length > 0 ? `
-                                    <div style="margin: 15px 0; color: #dc2626;">
-                                        <strong>⚠️ Contradictions:</strong> ${article.contradictions.join('; ')}
-                                    </div>
-                                ` : ''}
+                            <div class="bg-gradient-to-br from-green-50 to-green-100 rounded-lg p-4">
+                                <div class="text-2xl font-bold text-green-900">${result.matched_hits.length}</div>
+                                <div class="text-sm text-green-700">Matched Articles</div>
+                            </div>
+                            <div class="bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg p-4">
+                                <div class="text-2xl font-bold text-purple-900">${result.decision_score}/100</div>
+                                <div class="text-sm text-purple-700">Risk Score</div>
+                            </div>
+                            <div class="bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg p-4">
+                                <div class="inline-block px-3 py-1 rounded-full text-sm font-bold border ${getDecisionColor(result.final_decision)}">
+                                    ${result.final_decision.toUpperCase()}
+                                </div>
+                                <div class="text-sm text-gray-700 mt-1">Final Decision</div>
                             </div>
                         </div>
-                    `).join('')}
+                    </div>
                 </div>
-                
-                <div style="background: #f9fafb; padding: 20px; border-radius: 12px; margin: 20px 0;">
-                    <h3>📋 Compliance Memo</h3>
-                    <pre style="white-space: pre-wrap; font-family: monospace; line-height: 1.4; margin: 10px 0;">${result.final_memo}</pre>
+
+                <!-- Subject Information -->
+                <div class="bg-white rounded-xl shadow-lg p-6">
+                    <div class="flex items-center gap-3 mb-6">
+                        <i data-lucide="user-check" class="w-6 h-6 text-blue-600"></i>
+                        <h3 class="text-2xl font-bold text-gray-900">Subject Profile</h3>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                        <div class="bg-gray-50 rounded-lg p-4">
+                            <div class="text-sm text-gray-600">Full Name</div>
+                            <div class="font-semibold text-gray-900">${result.user_profile.full_name}</div>
+                        </div>
+                        <div class="bg-gray-50 rounded-lg p-4">
+                            <div class="text-sm text-gray-600">Date of Birth</div>
+                            <div class="font-semibold text-gray-900">${result.user_profile.date_of_birth || 'Not provided'}</div>
+                        </div>
+                        <div class="bg-gray-50 rounded-lg p-4">
+                            <div class="text-sm text-gray-600">City</div>
+                            <div class="font-semibold text-gray-900">${result.user_profile.city || 'Not provided'}</div>
+                        </div>
+                        <div class="bg-gray-50 rounded-lg p-4">
+                            <div class="text-sm text-gray-600">Employer</div>
+                            <div class="font-semibold text-gray-900">${result.user_profile.employer || 'Not provided'}</div>
+                        </div>
+                    </div>
+                    ${result.user_profile.aliases && result.user_profile.aliases.length > 0 ? `
+                        <div class="mt-4 bg-blue-50 rounded-lg p-4">
+                            <div class="text-sm text-blue-700 mb-2">Known Aliases</div>
+                            <div class="flex flex-wrap gap-2">
+                                ${result.user_profile.aliases.map(alias => `
+                                    <span class="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-sm">${alias}</span>
+                                `).join('')}
+                            </div>
+                        </div>
+                    ` : ''}
                 </div>
-                
-                <button class="btn btn-secondary" onclick="resetForm()">← New Analysis</button>
+
+                <!-- Overall Assessment -->
+                <div class="bg-white rounded-xl shadow-lg p-6">
+                    <div class="flex items-center gap-3 mb-6">
+                        <i data-lucide="clipboard-check" class="w-6 h-6 text-blue-600"></i>
+                        <h3 class="text-2xl font-bold text-gray-900">Overall Assessment</h3>
+                    </div>
+                    <div class="bg-blue-50 rounded-lg p-6 mb-6">
+                        <p class="text-lg leading-relaxed text-gray-800">${result.overall_rationale}</p>
+                    </div>
+                    ${result.targeted_ask ? `
+                        <div class="bg-orange-50 border border-orange-200 rounded-lg p-4">
+                            <div class="flex items-center gap-2 mb-2">
+                                <i data-lucide="alert-triangle" class="w-5 h-5 text-orange-600"></i>
+                                <h4 class="font-semibold text-orange-800">Recommended Action</h4>
+                            </div>
+                            <p class="text-orange-700">${result.targeted_ask}</p>
+                        </div>
+                    ` : ''}
+                </div>
+
+                <!-- Article Analysis -->
+                <div class="bg-white rounded-xl shadow-lg p-6">
+                    <div class="flex items-center gap-3 mb-6">
+                        <i data-lucide="file-text" class="w-6 h-6 text-blue-600"></i>
+                        <h3 class="text-2xl font-bold text-gray-900">Detailed Article Analysis</h3>
+                    </div>
+                    
+                    <div class="space-y-6">
+                        ${result.analyzed_articles.map((article, index) => `
+                            <div class="border border-gray-200 rounded-xl overflow-hidden">
+                                <!-- Article Header -->
+                                <div class="bg-gray-50 px-6 py-4 border-b border-gray-200">
+                                    <div class="flex items-start justify-between">
+                                        <div class="flex-1">
+                                            <h4 class="text-lg font-semibold text-gray-900 mb-2">${article.hit.title}</h4>
+                                            <div class="flex items-center gap-4 text-sm text-gray-600">
+                                                <span class="flex items-center gap-1">
+                                                    <i data-lucide="calendar" class="w-4 h-4"></i>
+                                                    ${article.hit.date}
+                                                </span>
+                                                <span class="flex items-center gap-1">
+                                                    <i data-lucide="globe" class="w-4 h-4"></i>
+                                                    ${article.hit.source}
+                                                </span>
+                                                ${article.hit.url ? `
+                                                    <a href="${article.hit.url}" target="_blank" class="flex items-center gap-1 text-blue-600 hover:text-blue-800">
+                                                        <i data-lucide="external-link" class="w-4 h-4"></i>
+                                                        View Source
+                                                    </a>
+                                                ` : ''}
+                                            </div>
+                                        </div>
+                                        <div class="ml-4">
+                                            <span class="inline-block px-3 py-1 rounded-full text-sm font-bold border ${getLinkageBadgeClass(article.linkage_decision)}">
+                                                ${article.linkage_decision.toUpperCase()}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Article Content -->
+                                <div class="p-6 space-y-6">
+                                    <!-- Summary -->
+                                    <div>
+                                        <h5 class="font-semibold text-gray-900 mb-2">📄 Article Summary</h5>
+                                        <p class="text-gray-700 leading-relaxed bg-gray-50 p-4 rounded-lg">${article.brief_summary}</p>
+                                    </div>
+
+                                    <!-- Identity Anchors -->
+                                    ${article.anchors && article.anchors.length > 0 ? `
+                                        <div>
+                                            <h5 class="font-semibold text-gray-900 mb-4">🔍 Identity Anchors Found (${article.anchors.length})</h5>
+                                            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                                                ${article.anchors.map(anchor => {
+                                                    const verification = article.anchor_verifications?.find(v => 
+                                                        v.anchor.anchor_type === anchor.anchor_type && v.anchor.value === anchor.value
+                                                    );
+                                                    const matchClass = verification ? 
+                                                        (verification.matches ? 'anchor-match' : verification.conflict ? 'anchor-no-match' : 'anchor-partial') : 
+                                                        'anchor-partial';
+                                                    const matchIcon = verification ? 
+                                                        (verification.matches ? 'check' : verification.conflict ? 'x' : 'minus') : 
+                                                        'help-circle';
+                                                    
+                                                    return `
+                                                        <div class="border rounded-lg p-4 ${matchClass}">
+                                                            <div class="flex items-center justify-between mb-2">
+                                                                <span class="text-sm font-medium text-gray-700">${anchor.anchor_type.toUpperCase()}</span>
+                                                                <div class="flex items-center gap-2">
+                                                                    <i data-lucide="${matchIcon}" class="w-4 h-4"></i>
+                                                                    <span class="text-xs text-gray-600">${Math.round(anchor.confidence * 100)}%</span>
+                                                                </div>
+                                                            </div>
+                                                            <div class="font-semibold text-gray-900 mb-1">${anchor.value}</div>
+                                                            <div class="text-xs text-gray-600">"${anchor.source_text.length > 50 ? anchor.source_text.substring(0, 50) + '...' : anchor.source_text}"</div>
+                                                            ${verification ? `
+                                                                <div class="text-xs mt-2 font-medium ${verification.matches ? 'text-green-700' : verification.conflict ? 'text-red-700' : 'text-yellow-700'}">
+                                                                    ${verification.rationale}
+                                                                </div>
+                                                            ` : ''}
+                                                        </div>
+                                                    `;
+                                                }).join('')}
+                                            </div>
+                                        </div>
+                                    ` : ''}
+
+                                    <!-- Contradictions -->
+                                    ${article.contradictions && article.contradictions.length > 0 ? `
+                                        <div class="bg-red-50 border border-red-200 rounded-lg p-4">
+                                            <div class="flex items-center gap-2 mb-2">
+                                                <i data-lucide="alert-triangle" class="w-5 h-5 text-red-600"></i>
+                                                <h5 class="font-semibold text-red-800">Contradictions Detected</h5>
+                                            </div>
+                                            <ul class="space-y-1">
+                                                ${article.contradictions.map(contradiction => `
+                                                    <li class="text-sm text-red-700">• ${contradiction}</li>
+                                                `).join('')}
+                                            </ul>
+                                        </div>
+                                    ` : ''}
+
+                                    <!-- Metadata -->
+                                    <div class="flex items-center justify-between pt-4 border-t border-gray-200 text-sm text-gray-600">
+                                        <span>${article.credibility_note}</span>
+                                        <span>${article.recency_note}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+
+                <!-- Compliance Memo -->
+                <div class="bg-white rounded-xl shadow-lg p-6">
+                    <div class="flex items-center gap-3 mb-6">
+                        <i data-lucide="file-check" class="w-6 h-6 text-blue-600"></i>
+                        <h3 class="text-2xl font-bold text-gray-900">Official Compliance Memo</h3>
+                    </div>
+                    <div class="bg-gray-50 rounded-lg p-6">
+                        <pre class="whitespace-pre-wrap font-mono text-sm text-gray-800 leading-relaxed">${result.final_memo}</pre>
+                    </div>
+                </div>
+
+                <!-- Action Button -->
+                <div class="text-center">
+                    <button onclick="resetForm()" 
+                            class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-8 py-3 rounded-lg font-semibold transition-colors flex items-center gap-2 mx-auto">
+                        <i data-lucide="arrow-left" class="w-5 h-5"></i>
+                        New Analysis
+                    </button>
+                </div>
             `;
-            
-            document.getElementById('compliance-form').style.display = 'none';
-            resultsDiv.classList.add('show');
         }
-        
-        function getLinkageColor(linkage) {
-            switch(linkage) {
-                case 'yes': return '#ef4444';
-                case 'maybe': return '#f59e0b';
-                case 'no': return '#22c55e';
-                default: return '#6b7280';
-            }
-        }
-        
+
         function resetForm() {
-            document.getElementById('compliance-form').style.display = 'block';
-            document.getElementById('results').classList.remove('show');
-            document.getElementById('results').innerHTML = '';
+            document.getElementById('form-container').style.display = 'block';
+            document.getElementById('results-container').style.display = 'none';
+            document.getElementById('loading-container').style.display = 'none';
         }
-        
-        function showLoading() {
-            document.getElementById('compliance-form').style.display = 'none';
-            document.getElementById('loading').style.display = 'block';
+
+        function showForm() {
+            document.getElementById('form-container').style.display = 'block';
+            document.getElementById('loading-container').style.display = 'none';
+            document.getElementById('results-container').style.display = 'none';
         }
-        
-        function hideLoading() {
-            document.getElementById('loading').style.display = 'none';
-        }
-        
+
         function showError(message) {
             const errorDiv = document.getElementById('error-message');
-            errorDiv.innerHTML = `<div class="error">❌ ${message}</div>`;
-            errorDiv.style.display = 'block';
+            const errorText = document.getElementById('error-text');
+            errorText.textContent = message;
+            errorDiv.classList.remove('hidden');
+            setTimeout(hideError, 5000); // Auto-hide after 5 seconds
         }
-        
+
         function hideError() {
-            document.getElementById('error-message').style.display = 'none';
+            document.getElementById('error-message').classList.add('hidden');
+        }
+
+        function showSuccess(message) {
+            // Create temporary success message
+            const successDiv = document.createElement('div');
+            successDiv.className = 'fixed top-4 right-4 bg-green-50 border border-green-200 text-green-800 px-6 py-3 rounded-lg shadow-lg z-50';
+            successDiv.innerHTML = `
+                <div class="flex items-center gap-2">
+                    <i data-lucide="check-circle" class="w-5 h-5"></i>
+                    <span class="font-medium">${message}</span>
+                </div>
+            `;
+            document.body.appendChild(successDiv);
+            lucide.createIcons();
+            
+            setTimeout(() => {
+                successDiv.remove();
+            }, 3000);
         }
     </script>
 </body>
