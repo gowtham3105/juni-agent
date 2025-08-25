@@ -15,9 +15,16 @@ class DecisionEngine:
         self.openai_client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
     
     def verify_anchors(self, user_profile: UserProfile, anchors: List[IdentityAnchor], article_date: str) -> List[AnchorVerification]:
-        """Verify each anchor against the user profile"""
-        verifications = []
+        """Verify all anchors against the user profile in a single AI call"""
         
+        # Try batch AI verification first for efficiency
+        batch_result = self._ai_verify_all_anchors(user_profile, anchors, article_date)
+        
+        if batch_result and batch_result.get("success", False):
+            return batch_result["verifications"]
+        
+        # Fallback to individual verification if batch AI fails
+        verifications = []
         for anchor in anchors:
             verification = self._verify_single_anchor(user_profile, anchor, article_date)
             verifications.append(verification)
@@ -276,4 +283,92 @@ class DecisionEngine:
             
         except Exception as e:
             print(f"AI anchor verification failed: {e}")
+            return {"success": False}
+    
+    def _ai_verify_all_anchors(self, user_profile: UserProfile, anchors: List[IdentityAnchor], article_date: str) -> dict:
+        """Use AI to verify all anchors in a single efficient call"""
+        try:
+            # Prepare user profile data
+            profile_data = {
+                "name": user_profile.full_name,
+                "aliases": user_profile.aliases,
+                "dob": user_profile.date_of_birth,
+                "city": user_profile.city,
+                "employer": user_profile.employer
+            }
+            
+            # Prepare anchors data
+            anchors_data = []
+            for i, anchor in enumerate(anchors):
+                anchors_data.append({
+                    "index": i,
+                    "type": anchor.anchor_type,
+                    "value": anchor.value,
+                    "context": anchor.source_text,
+                    "confidence": anchor.confidence
+                })
+            
+            # the newest OpenAI model is "gpt-5" which was released August 7, 2025.
+            # do not change this unless explicitly requested by the user
+            response = self.openai_client.chat.completions.create(
+                model="gpt-5",
+                messages=[
+                    {
+                        "role": "system",
+                        "content": """You are an expert at identity verification for compliance purposes.
+                        
+                        For each anchor, determine if it matches, contradicts, or is neutral regarding the user profile.
+                        Consider contextual relationships, temporal context, and intelligent matching:
+                        
+                        - Name variations, nicknames, cultural differences
+                        - Company acquisitions, subsidiaries, name changes 
+                        - Geographic relationships (NYC = New York = Manhattan)
+                        - Career progression (CFO promoted to CEO)
+                        - Temporal context (ages calculated from dates)
+                        - Title hierarchies and equivalents
+                        - Partial matches vs clear conflicts
+                        
+                        Return a JSON object with:
+                        - "verifications": array of objects, one per anchor with:
+                          - "index": anchor index
+                          - "matches": boolean (true if anchor matches profile)
+                          - "conflict": boolean (true if anchor contradicts profile) 
+                          - "rationale": string explaining the reasoning
+                          - "confidence": float (0-1) indicating certainty
+                        """
+                    },
+                    {
+                        "role": "user",
+                        "content": f"""USER PROFILE: {json.dumps(profile_data, default=str)}
+                        
+                        ANCHORS TO VERIFY: {json.dumps(anchors_data, default=str)}
+                        
+                        ARTICLE DATE: {article_date}
+                        
+                        For each anchor, does it match, contradict, or is neutral regarding the user profile?
+                        Consider temporal context and contextual relationships."""
+                    }
+                ],
+                response_format={"type": "json_object"}
+            )
+            
+            result = json.loads(response.choices[0].message.content)
+            verifications = []
+            
+            for verification_data in result.get("verifications", []):
+                anchor_index = verification_data.get("index", 0)
+                if anchor_index < len(anchors):
+                    anchor = anchors[anchor_index]
+                    verification = AnchorVerification(
+                        anchor=anchor,
+                        matches=verification_data.get("matches", False),
+                        conflict=verification_data.get("conflict", False),
+                        rationale=f"AI: {verification_data.get('rationale', 'No explanation')} (confidence: {verification_data.get('confidence', 0.0):.2f})"
+                    )
+                    verifications.append(verification)
+            
+            return {"success": True, "verifications": verifications}
+            
+        except Exception as e:
+            print(f"AI batch anchor verification failed: {e}")
             return {"success": False}
