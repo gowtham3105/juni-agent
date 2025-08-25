@@ -3,12 +3,16 @@ from datetime import datetime, date
 from models import UserProfile, IdentityAnchor, AnchorVerification, LinkageDecision
 from utils import parse_date, calculate_age, extract_age_from_text, normalize_name
 from config import Config
+import os
+import json
+from openai import OpenAI
 
 class DecisionEngine:
     """Core decision logic for linkage determination"""
     
     def __init__(self):
         self.config = Config()
+        self.openai_client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
     
     def verify_anchors(self, user_profile: UserProfile, anchors: List[IdentityAnchor], article_date: str) -> List[AnchorVerification]:
         """Verify each anchor against the user profile"""
@@ -21,7 +25,20 @@ class DecisionEngine:
         return verifications
     
     def _verify_single_anchor(self, user_profile: UserProfile, anchor: IdentityAnchor, article_date: str) -> AnchorVerification:
-        """Verify a single anchor against user profile"""
+        """Verify a single anchor against user profile using AI-powered contextual understanding"""
+        
+        # Try AI-powered verification first
+        ai_result = self._ai_verify_anchor(user_profile, anchor, article_date)
+        
+        if ai_result and ai_result.get("success", False):
+            return AnchorVerification(
+                anchor=anchor,
+                matches=ai_result["matches"],
+                conflict=ai_result["conflict"],
+                rationale=ai_result["rationale"]
+            )
+        
+        # Fallback to rule-based verification if AI fails
         anchor_type = anchor.anchor_type.lower()
         anchor_value = anchor.value.strip()
         
@@ -191,3 +208,72 @@ class DecisionEngine:
             rationale = "Linkage: no - name match only, no supporting anchors"
         
         return decision, rationale
+    
+    def _ai_verify_anchor(self, user_profile: UserProfile, anchor: IdentityAnchor, article_date: str) -> dict:
+        """Use AI to contextually verify if an anchor matches the user profile"""
+        try:
+            # Prepare user profile data
+            profile_data = {
+                "name": user_profile.full_name,
+                "aliases": user_profile.aliases,
+                "dob": user_profile.date_of_birth,
+                "city": user_profile.city,
+                "employer": user_profile.employer
+            }
+            
+            # the newest OpenAI model is "gpt-5" which was released August 7, 2025.
+            # do not change this unless explicitly requested by the user
+            response = self.openai_client.chat.completions.create(
+                model="gpt-5",
+                messages=[
+                    {
+                        "role": "system",
+                        "content": """You are an expert at identity verification for compliance purposes.
+                        You understand contextual relationships and can make intelligent judgments about whether 
+                        extracted information matches a user profile.
+                        
+                        Consider:
+                        - Name variations, nicknames, cultural differences
+                        - Company acquisitions, subsidiaries, name changes 
+                        - Geographic relationships (NYC = New York = Manhattan)
+                        - Career progression (CFO promoted to CEO)
+                        - Temporal context (ages calculated from dates)
+                        - Title hierarchies and equivalents
+                        - Partial matches vs clear conflicts
+                        
+                        Return a JSON object with:
+                        - "matches": boolean (true if anchor matches profile)
+                        - "conflict": boolean (true if anchor contradicts profile) 
+                        - "rationale": string explaining the reasoning
+                        - "confidence": float (0-1) indicating certainty
+                        """
+                    },
+                    {
+                        "role": "user",
+                        "content": f"""USER PROFILE: {json.dumps(profile_data, default=str)}
+                        
+                        ANCHOR TO VERIFY:
+                        - Type: {anchor.anchor_type}
+                        - Value: {anchor.value}
+                        - Context: "{anchor.source_text}"
+                        - Article Date: {article_date}
+                        
+                        Does this anchor match, contradict, or is neutral regarding the user profile?
+                        Consider temporal context and contextual relationships."""
+                    }
+                ],
+                response_format={"type": "json_object"}
+            )
+            
+            result = json.loads(response.choices[0].message.content)
+            return {
+                "success": True,
+                "matches": result.get("matches", False),
+                "conflict": result.get("conflict", False),
+                "rationale": f"AI: {result.get('rationale', 'No explanation provided')} (confidence: {result.get('confidence', 0.0):.2f})",
+                "confidence": result.get("confidence", 0.0)
+            }
+            
+        except Exception as e:
+            print(f"AI anchor verification failed: {e}")
+            return {"success": False}
