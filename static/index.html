@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Compliance Agent</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f5f7fa;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 12px;
+        }
+        
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            margin-bottom: 20px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #374151;
+        }
+        
+        .form-group input, .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 1em;
+        }
+        
+        .form-group input:focus, .form-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .btn-secondary {
+            background: #f3f4f6;
+            color: #374151;
+            border: 2px solid #e5e7eb;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+        
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .results {
+            display: none;
+        }
+        
+        .results.show {
+            display: block;
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .status-badge {
+            padding: 8px 16px;
+            border-radius: 20px;
+            color: white;
+            font-weight: 700;
+            text-transform: uppercase;
+            display: inline-block;
+            margin: 10px 0;
+        }
+        
+        .status-clear { background: #22c55e; }
+        .status-escalate { background: #f59e0b; }
+        .status-decline { background: #ef4444; }
+        
+        .article-card {
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+        
+        .article-header {
+            background: #f9fafb;
+            padding: 20px;
+            border-bottom: 2px solid #e5e7eb;
+        }
+        
+        .article-content {
+            padding: 20px;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #6b7280;
+        }
+        
+        .error {
+            background: #fef2f2;
+            color: #dc2626;
+            padding: 15px;
+            border: 2px solid #fecaca;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🛡️ AI Compliance Agent</h1>
+            <p>AML/KYC Adverse Media Review System</p>
+        </div>
+        
+        <div class="card">
+            <div id="compliance-form">
+                <h2>👤 User Profile</h2>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="full_name">Full Name *</label>
+                        <input type="text" id="full_name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="date_of_birth">Date of Birth</label>
+                        <input type="date" id="date_of_birth">
+                    </div>
+                    <div class="form-group">
+                        <label for="city">City</label>
+                        <input type="text" id="city">
+                    </div>
+                    <div class="form-group">
+                        <label for="employer">Employer</label>
+                        <input type="text" id="employer">
+                    </div>
+                </div>
+                
+                <h2>📄 Media Hit</h2>
+                <div class="form-group">
+                    <label for="article_title">Article Title *</label>
+                    <input type="text" id="article_title" required>
+                </div>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="article_source">Source *</label>
+                        <input type="text" id="article_source" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="article_date">Date *</label>
+                        <input type="date" id="article_date" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="article_content">Article Content/Snippet</label>
+                    <textarea id="article_content" rows="6" placeholder="Paste the article content here..."></textarea>
+                </div>
+                
+                <div style="display: flex; gap: 10px; margin-top: 20px;">
+                    <button class="btn btn-primary" onclick="runComplianceCheck()">🔍 Run Compliance Check</button>
+                    <button class="btn btn-secondary" onclick="loadSampleData()">Load Sample Data</button>
+                </div>
+                
+                <div id="error-message" style="display: none;"></div>
+            </div>
+            
+            <div id="loading" class="loading" style="display: none;">
+                <h3>🔄 Analyzing...</h3>
+                <p>The AI is extracting identity anchors and performing compliance checks...</p>
+            </div>
+            
+            <div id="results" class="results">
+                <!-- Results will be populated here -->
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        async function loadSampleData() {
+            try {
+                const response = await fetch('/compliance/sample');
+                const data = await response.json();
+                
+                document.getElementById('full_name').value = data.user_profile.full_name;
+                document.getElementById('date_of_birth').value = data.user_profile.date_of_birth;
+                document.getElementById('city').value = data.user_profile.city;
+                document.getElementById('employer').value = data.user_profile.employer;
+                
+                if (data.media_hits && data.media_hits.length > 0) {
+                    const hit = data.media_hits[0];
+                    document.getElementById('article_title').value = hit.title;
+                    document.getElementById('article_source').value = hit.source;
+                    document.getElementById('article_date').value = hit.date;
+                    document.getElementById('article_content').value = hit.full_text || hit.snippet || '';
+                }
+            } catch (error) {
+                showError('Failed to load sample data: ' + error.message);
+            }
+        }
+        
+        async function runComplianceCheck() {
+            const formData = collectFormData();
+            if (!formData) return;
+            
+            showLoading();
+            hideError();
+            
+            try {
+                const response = await fetch('/compliance/check', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(formData)
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    displayResults(data.result);
+                } else {
+                    showError(data.message || 'Unknown error occurred');
+                }
+            } catch (error) {
+                showError('Network error: ' + error.message);
+            } finally {
+                hideLoading();
+            }
+        }
+        
+        function collectFormData() {
+            const fullName = document.getElementById('full_name').value.trim();
+            const articleTitle = document.getElementById('article_title').value.trim();
+            const articleSource = document.getElementById('article_source').value.trim();
+            const articleDate = document.getElementById('article_date').value;
+            
+            if (!fullName || !articleTitle || !articleSource || !articleDate) {
+                showError('Please fill in all required fields (marked with *)');
+                return null;
+            }
+            
+            return {
+                user_profile: {
+                    full_name: fullName,
+                    date_of_birth: document.getElementById('date_of_birth').value || null,
+                    city: document.getElementById('city').value || null,
+                    employer: document.getElementById('employer').value || null,
+                    aliases: []
+                },
+                media_hits: [{
+                    title: articleTitle,
+                    snippet: document.getElementById('article_content').value || null,
+                    date: articleDate,
+                    source: articleSource,
+                    hit_type: 'adverse_media'
+                }]
+            };
+        }
+        
+        function displayResults(result) {
+            const resultsDiv = document.getElementById('results');
+            const statusClass = 'status-' + result.final_decision.toLowerCase();
+            
+            resultsDiv.innerHTML = `
+                <h2>🔍 Analysis Results</h2>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin: 20px 0;">
+                    <div style="text-align: center; padding: 20px; background: #f9fafb; border-radius: 12px;">
+                        <div class="status-badge ${statusClass}">${result.final_decision}</div>
+                        <p>Final Decision</p>
+                    </div>
+                    <div style="text-align: center; padding: 20px; background: #f9fafb; border-radius: 12px;">
+                        <h3>${result.decision_score}/100</h3>
+                        <p>Risk Score</p>
+                    </div>
+                    <div style="text-align: center; padding: 20px; background: #f9fafb; border-radius: 12px;">
+                        <h3>${result.matched_hits.length}</h3>
+                        <p>Matched Articles</p>
+                    </div>
+                </div>
+                
+                <div style="background: #f9fafb; padding: 20px; border-radius: 12px; margin: 20px 0;">
+                    <h3>📝 Assessment</h3>
+                    <p style="margin: 10px 0; line-height: 1.6;">${result.overall_rationale}</p>
+                </div>
+                
+                <div style="margin: 20px 0;">
+                    <h3>📰 Article Analysis</h3>
+                    ${result.analyzed_articles.map(article => `
+                        <div class="article-card">
+                            <div class="article-header">
+                                <h4>${article.hit.title}</h4>
+                                <div style="color: #6b7280; margin: 10px 0;">
+                                    ${article.hit.source} • ${article.hit.date}
+                                    <span class="status-badge" style="background: ${getLinkageColor(article.linkage_decision)};">
+                                        ${article.linkage_decision.toUpperCase()}
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="article-content">
+                                <p><strong>Summary:</strong> ${article.brief_summary}</p>
+                                ${article.anchors.length > 0 ? `
+                                    <div style="margin: 15px 0;">
+                                        <strong>Identity Anchors Found (${article.anchors.length}):</strong>
+                                        <div style="margin-top: 10px;">
+                                            ${article.anchors.map(anchor => 
+                                                `<span style="background: #f3f4f6; padding: 4px 8px; border-radius: 4px; margin: 2px; display: inline-block;">
+                                                    ${anchor.anchor_type}: ${anchor.value} (${Math.round(anchor.confidence * 100)}%)
+                                                </span>`
+                                            ).join('')}
+                                        </div>
+                                    </div>
+                                ` : ''}
+                                ${article.contradictions && article.contradictions.length > 0 ? `
+                                    <div style="margin: 15px 0; color: #dc2626;">
+                                        <strong>⚠️ Contradictions:</strong> ${article.contradictions.join('; ')}
+                                    </div>
+                                ` : ''}
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+                
+                <div style="background: #f9fafb; padding: 20px; border-radius: 12px; margin: 20px 0;">
+                    <h3>📋 Compliance Memo</h3>
+                    <pre style="white-space: pre-wrap; font-family: monospace; line-height: 1.4; margin: 10px 0;">${result.final_memo}</pre>
+                </div>
+                
+                <button class="btn btn-secondary" onclick="resetForm()">← New Analysis</button>
+            `;
+            
+            document.getElementById('compliance-form').style.display = 'none';
+            resultsDiv.classList.add('show');
+        }
+        
+        function getLinkageColor(linkage) {
+            switch(linkage) {
+                case 'yes': return '#ef4444';
+                case 'maybe': return '#f59e0b';
+                case 'no': return '#22c55e';
+                default: return '#6b7280';
+            }
+        }
+        
+        function resetForm() {
+            document.getElementById('compliance-form').style.display = 'block';
+            document.getElementById('results').classList.remove('show');
+            document.getElementById('results').innerHTML = '';
+        }
+        
+        function showLoading() {
+            document.getElementById('compliance-form').style.display = 'none';
+            document.getElementById('loading').style.display = 'block';
+        }
+        
+        function hideLoading() {
+            document.getElementById('loading').style.display = 'none';
+        }
+        
+        function showError(message) {
+            const errorDiv = document.getElementById('error-message');
+            errorDiv.innerHTML = `<div class="error">❌ ${message}</div>`;
+            errorDiv.style.display = 'block';
+        }
+        
+        function hideError() {
+            document.getElementById('error-message').style.display = 'none';
+        }
+    </script>
+</body>
+</html>
