@@ -1,0 +1,154 @@
+{
+  "user_profile": {
+    "full_name": "John Michael Smith",
+    "date_of_birth": "1985-03-15",
+    "city": "New York",
+    "employer": "ABC Financial Corp",
+    "id_data": {
+      "passport": "P12345678",
+      "ssn": "XXX-XX-1234"
+    },
+    "aliases": [
+      "John Smith",
+      "J.M. Smith"
+    ]
+  },
+  "total_hits": 3,
+  "analyzed_articles": [
+    {
+      "hit": {
+        "title": "ABC Financial Corp CFO Charged with Securities Fraud",
+        "snippet": "John Smith, 39, Chief Financial Officer at ABC Financial Corp in New York, was charged yesterday with securities fraud by federal prosecutors. The charges relate to alleged manipulation of quarterly earnings reports between 2020-2023.",
+        "full_text": "Federal prosecutors announced charges against John Michael Smith, age 39, the Chief Financial Officer of ABC Financial Corp based in New York City. Smith is accused of securities fraud in connection with the alleged manipulation of quarterly earnings reports submitted to the SEC between 2020 and 2023. According to court documents filed in the Southern District of New York, Smith allegedly worked with other executives to inflate revenue figures and hide mounting losses. 'This case represents a serious breach of fiduciary duty,' said prosecutor Jane Wilson. Smith's attorney declined to comment. ABC Financial Corp is a mid-sized investment firm with offices in Manhattan. The company's stock has fallen 40% since the charges were announced. Smith joined ABC Financial in 2018 as CFO after working at rival firm XYZ Capital. Court records show Smith was born March 15, 1985 and resides in Manhattan.",
+        "date": "2024-11-15",
+        "source": "Financial Times",
+        "url": "https://ft.com/content/abc-cfo-charged",
+        "hit_type": "adverse_media"
+      },
+      "brief_summary": "Failed to analyze article: ABC Financial Corp CFO Charged with Securities Fraud",
+      "anchors": [],
+      "anchor_verifications": [],
+      "contradictions": [],
+      "linkage_decision": "no",
+      "outcome_type": "none",
+      "category_type": "none",
+      "credibility_note": "Credibility: tier-1 outlet (Financial Times, 2024-11-15)",
+      "recency_note": "Recency: within 12 months (2024-11-15)",
+      "rationale": "Outcome: none, Category: none. Failed to analyze article: ABC Financial Corp CFO Charged with Securities Fraud\nLinkage: no - no name match found\nCredibility: tier-1 outlet (Financial Times, 2024-11-15). Recency: within 12 months (2024-11-15). URL: https://ft.com/content/abc-cfo-charged"
+    },
+    {
+      "hit": {
+        "title": "Investment Firm Executive Denies Fraud Allegations",
+        "snippet": "John Smith of ABC Financial Corp denies all allegations of securities fraud. His lawyer says the charges are unfounded and they will fight them vigorously in court.",
+        "full_text": null,
+        "date": "2024-11-16",
+        "source": "Reuters",
+        "url": "https://reuters.com/business/abc-executive-denies",
+        "hit_type": "adverse_media"
+      },
+      "brief_summary": "Failed to analyze article: Investment Firm Executive Denies Fraud Allegations",
+      "anchors": [],
+      "anchor_verifications": [],
+      "contradictions": [],
+      "linkage_decision": "no",
+      "outcome_type": "none",
+      "category_type": "none",
+      "credibility_note": "Credibility: tier-1 outlet (Reuters, 2024-11-16)",
+      "recency_note": "Recency: within 12 months (2024-11-16)",
+      "rationale": "Outcome: none, Category: none. Failed to analyze article: Investment Firm Executive Denies Fraud Allegations\nLinkage: no - no name match found\nCredibility: tier-1 outlet (Reuters, 2024-11-16). Recency: within 12 months (2024-11-16). URL: https://reuters.com/business/abc-executive-denies"
+    },
+    {
+      "hit": {
+        "title": "Local Man Arrested for DUI",
+        "snippet": "John Smith, 45, of Boston was arrested for driving under the influence on Highway 95. Smith works as a mechanic at Joe's Auto Repair.",
+        "full_text": null,
+        "date": "2024-11-10",
+        "source": "Boston Herald",
+        "url": "https://bostonherald.com/local/dui-arrest",
+        "hit_type": "adverse_media"
+      },
+      "brief_summary": "Failed to analyze article: Local Man Arrested for DUI",
+      "anchors": [],
+      "anchor_verifications": [],
+      "contradictions": [],
+      "linkage_decision": "no",
+      "outcome_type": "none",
+      "category_type": "none",
+      "credibility_note": "Credibility: national outlet (Boston Herald, 2024-11-10)",
+      "recency_note": "Recency: within 12 months (2024-11-10)",
+      "rationale": "Outcome: none, Category: none. Failed to analyze article: Local Man Arrested for DUI\nLinkage: no - no name match found\nCredibility: national outlet (Boston Herald, 2024-11-10). Recency: within 12 months (2024-11-10). URL: https://bostonherald.com/local/dui-arrest"
+    }
+  ],
+  "matched_hits": [],
+  "non_matched_hits": [
+    {
+      "hit": {
+        "title": "ABC Financial Corp CFO Charged with Securities Fraud",
+        "snippet": "John Smith, 39, Chief Financial Officer at ABC Financial Corp in New York, was charged yesterday with securities fraud by federal prosecutors. The charges relate to alleged manipulation of quarterly earnings reports between 2020-2023.",
+        "full_text": "Federal prosecutors announced charges against John Michael Smith, age 39, the Chief Financial Officer of ABC Financial Corp based in New York City. Smith is accused of securities fraud in connection with the alleged manipulation of quarterly earnings reports submitted to the SEC between 2020 and 2023. According to court documents filed in the Southern District of New York, Smith allegedly worked with other executives to inflate revenue figures and hide mounting losses. 'This case represents a serious breach of fiduciary duty,' said prosecutor Jane Wilson. Smith's attorney declined to comment. ABC Financial Corp is a mid-sized investment firm with offices in Manhattan. The company's stock has fallen 40% since the charges were announced. Smith joined ABC Financial in 2018 as CFO after working at rival firm XYZ Capital. Court records show Smith was born March 15, 1985 and resides in Manhattan.",
+        "date": "2024-11-15",
+        "source": "Financial Times",
+        "url": "https://ft.com/content/abc-cfo-charged",
+        "hit_type": "adverse_media"
+      },
+      "brief_summary": "Failed to analyze article: ABC Financial Corp CFO Charged with Securities Fraud",
+      "anchors": [],
+      "anchor_verifications": [],
+      "contradictions": [],
+      "linkage_decision": "no",
+      "outcome_type": "none",
+      "category_type": "none",
+      "credibility_note": "Credibility: tier-1 outlet (Financial Times, 2024-11-15)",
+      "recency_note": "Recency: within 12 months (2024-11-15)",
+      "rationale": "Outcome: none, Category: none. Failed to analyze article: ABC Financial Corp CFO Charged with Securities Fraud\nLinkage: no - no name match found\nCredibility: tier-1 outlet (Financial Times, 2024-11-15). Recency: within 12 months (2024-11-15). URL: https://ft.com/content/abc-cfo-charged"
+    },
+    {
+      "hit": {
+        "title": "Investment Firm Executive Denies Fraud Allegations",
+        "snippet": "John Smith of ABC Financial Corp denies all allegations of securities fraud. His lawyer says the charges are unfounded and they will fight them vigorously in court.",
+        "full_text": null,
+        "date": "2024-11-16",
+        "source": "Reuters",
+        "url": "https://reuters.com/business/abc-executive-denies",
+        "hit_type": "adverse_media"
+      },
+      "brief_summary": "Failed to analyze article: Investment Firm Executive Denies Fraud Allegations",
+      "anchors": [],
+      "anchor_verifications": [],
+      "contradictions": [],
+      "linkage_decision": "no",
+      "outcome_type": "none",
+      "category_type": "none",
+      "credibility_note": "Credibility: tier-1 outlet (Reuters, 2024-11-16)",
+      "recency_note": "Recency: within 12 months (2024-11-16)",
+      "rationale": "Outcome: none, Category: none. Failed to analyze article: Investment Firm Executive Denies Fraud Allegations\nLinkage: no - no name match found\nCredibility: tier-1 outlet (Reuters, 2024-11-16). Recency: within 12 months (2024-11-16). URL: https://reuters.com/business/abc-executive-denies"
+    },
+    {
+      "hit": {
+        "title": "Local Man Arrested for DUI",
+        "snippet": "John Smith, 45, of Boston was arrested for driving under the influence on Highway 95. Smith works as a mechanic at Joe's Auto Repair.",
+        "full_text": null,
+        "date": "2024-11-10",
+        "source": "Boston Herald",
+        "url": "https://bostonherald.com/local/dui-arrest",
+        "hit_type": "adverse_media"
+      },
+      "brief_summary": "Failed to analyze article: Local Man Arrested for DUI",
+      "anchors": [],
+      "anchor_verifications": [],
+      "contradictions": [],
+      "linkage_decision": "no",
+      "outcome_type": "none",
+      "category_type": "none",
+      "credibility_note": "Credibility: national outlet (Boston Herald, 2024-11-10)",
+      "recency_note": "Recency: within 12 months (2024-11-10)",
+      "rationale": "Outcome: none, Category: none. Failed to analyze article: Local Man Arrested for DUI\nLinkage: no - no name match found\nCredibility: national outlet (Boston Herald, 2024-11-10). Recency: within 12 months (2024-11-10). URL: https://bostonherald.com/local/dui-arrest"
+    }
+  ],
+  "final_decision": "clear",
+  "decision_score": 10,
+  "overall_rationale": "Decision: clear (score 10/100) because no linked adverse media found.",
+  "targeted_ask": null,
+  "final_memo": "ADVERSE MEDIA REVIEW - John Michael Smith\nSubject: John Michael Smith, DOB: 1985-03-15\nDecision: CLEAR\n\n\u2022 No linked adverse media found\n\nNEXT STEP: Review complete, no further action required.\nReview completed: 2025-08-25 21:07:54",
+  "processing_timestamp": "2025-08-25 21:07:54.068177"
+}

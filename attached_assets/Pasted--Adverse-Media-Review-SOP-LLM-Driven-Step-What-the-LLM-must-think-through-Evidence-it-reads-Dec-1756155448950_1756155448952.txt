@@ -1,0 +1,25 @@
+🌐 Adverse Media Review SOP (LLM-Driven)
+
+Step	What the LLM must think through	Evidence it reads	Decision rule to apply	What the rationale must say (concise, specific)
+1) Case intake	Restate who the subject is (anchors for later reasoning)	Subject profile (name, DOB, location, employer, ID data) + vendor hits metadata	None	“Subject: <full name>, DOB <dob>, city <city>, employer <employer>. Vendor hits: N articles.”
+2) Read article	Understand the full claim (not just headline)	Article headline, snippet/full text, date, publisher	None	1-line neutral paraphrase of what the article alleges/reports
+3) Collect anchors	Pull all identity anchors from text	Mentions of names, employer, city, dob/age, titles, ids	None	List anchors found: e.g. “[employer: ABC Ltd, city: London, age: 38]”
+4) Name match sanity	Decide if the name form is strong or weak	Name forms vs subject aliases	If common name → require ≥2 anchors; if rare name → 1 anchor may suffice	“common name, needs ≥2 anchors” OR “rare name, 1 anchor can suffice”
+5) Anchor test	Check each anchor against subject profile	Anchors vs subject data	Record pass/fail per anchor	“employer: matches; city: matches; dob: not stated; age: conflict (1985 vs 1992)”
+6) Contradiction scan	Look for hard conflicts	DOB, age, geography, employer timeline, gender	If conflict, default to “no” unless multiple stronger anchors overrule	“dob conflict, subject 1992-06-14 vs article 1984-07-03”
+7) Linkage decision	Decide if article is about the subject	Results from 4–6	Yes if name + ≥2 anchors w/out hard conflict. Maybe if weak. No if conflict or name-only.	Start with “Linkage: yes/maybe/no” and cite anchors (or conflicts).
+8) Outcome classification	Classify the legal posture	Verbs & context in article	Map phrases → Allegation / Investigation / Charged / Convicted / Acquitted / Settled / Regulator order	“Outcome: charged (prosecutor filed charges on 2023-04-15)” and quote the trigger clause.
+9) Category classification	Classify risk type	Article content, entities	Map → corruption, fraud, ML, TF, trafficking, sanctions evasion, violence, regulatory, civil, none	“Category: fraud, based on ‘charged with securities fraud’ in paragraph 3.”
+10) Credibility note	Assess source quality	Publisher type	Gov/court > tier-1 > national > local > blog	“Credibility: tier-1 outlet (Financial Times, 2023-04-15)”
+11) Recency note	Assess time relevance	Article date	Policy lookback (e.g. 7 yrs) → bucket: <12m / 12–36m / >36m	“Recency: within 12 months (2024-11-02).”
+13) Per-article rationale (always 3 lines)	Produce concise, auditable record	All above steps for this article	Always 3 lines, even if “no”	Line 1: outcome + category + 1-line summary. Line 2: linkage call + anchors/contradictions. Line 3: credibility + recency + link.
+14) Cluster duplicates	Merge repeated stories	Article titles, urls, key quotes	Keep most credible or detailed	“Clustered 4 duplicates → canonical BBC article.”
+15) Case roll-up	Combine accepted stories	All per-article calls	Keep only yes/maybe stories for scoring	List accepted stories, sorted by strength.
+16) Overall decision logic	Translate story set into recommendation	Outcomes + linkage + credibility + recency	Decline if convicted/regulator order within lookback + linkage yes. Escalate if charged/investigated. Clear if all no or only weak allegations.	Start with “Decision: clear/escalate/decline (score X/100) because…” and cite decisive stories.
+17) Targeted ask (if escalate)	Help human reviewer resolve ambiguity	Contradictions + missing anchors	One precise doc/request	“Request: gov ID to confirm DOB, since article reports 1979 DOB.”
+18) Final memo	Create regulator-auditable artifact	Top stories, decision, asks	8–10 lines, bullets, links inline	Bullets for each decisive story, list contradictions, next step, tags.
+
+
+---
+
+🧩 
