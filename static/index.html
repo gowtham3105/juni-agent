@@ -27,6 +27,26 @@
             </div>
         </div>
 
+        <!-- Tab Navigation -->
+        <div class="bg-white rounded-xl shadow-lg mb-8">
+            <div class="flex border-b">
+                <button onclick="switchTab('compliance')" id="compliance-tab" 
+                        class="px-6 py-4 font-semibold text-blue-600 border-b-2 border-blue-600 bg-blue-50">
+                    <div class="flex items-center gap-2">
+                        <i data-lucide="shield-check" class="w-5 h-5"></i>
+                        Compliance Check
+                    </div>
+                </button>
+                <button onclick="switchTab('prompts')" id="prompts-tab" 
+                        class="px-6 py-4 font-semibold text-gray-600 hover:text-blue-600 hover:bg-blue-50 transition-colors">
+                    <div class="flex items-center gap-2">
+                        <i data-lucide="settings" class="w-5 h-5"></i>
+                        AI Prompts
+                    </div>
+                </button>
+            </div>
+        </div>
+
         <!-- Main Content -->
         <div id="form-container" class="space-y-8">
             <!-- User Profile Section -->
@@ -108,6 +128,39 @@
             </div>
         </div>
 
+        <!-- Prompts Management Container -->
+        <div id="prompts-container" class="hidden space-y-8">
+            <div class="bg-white rounded-xl shadow-lg p-6">
+                <div class="flex items-center justify-between mb-6">
+                    <div class="flex items-center gap-3">
+                        <i data-lucide="brain" class="w-6 h-6 text-blue-600"></i>
+                        <h2 class="text-2xl font-bold text-gray-900">AI Prompt Configuration</h2>
+                    </div>
+                    <div class="text-sm text-gray-600">
+                        Changes are saved in memory only - they reset when the server restarts
+                    </div>
+                </div>
+                
+                <div id="prompts-list" class="space-y-6">
+                    <!-- Prompts will be loaded here -->
+                </div>
+                
+                <div id="prompt-loading" class="text-center py-8">
+                    <div class="animate-spin w-8 h-8 mx-auto mb-4 text-blue-600">
+                        <i data-lucide="loader" class="w-full h-full"></i>
+                    </div>
+                    <p class="text-gray-600">Loading prompts...</p>
+                </div>
+                
+                <div id="prompt-error" class="hidden mt-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+                    <div class="flex items-center gap-2">
+                        <i data-lucide="alert-circle" class="w-5 h-5 text-red-600"></i>
+                        <span id="prompt-error-text" class="text-red-800 font-medium"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- Loading State -->
         <div id="loading-container" class="hidden">
             <div class="bg-white rounded-xl shadow-lg p-8">
@@ -150,7 +203,196 @@
         document.addEventListener('DOMContentLoaded', function() {
             lucide.createIcons();
             addMediaHit(); // Add initial media hit
+            // Don't auto-load prompts on page load, only when tab is switched
         });
+
+        // Tab Management
+        function switchTab(tabName) {
+            // Update tab styling
+            const complianceTab = document.getElementById('compliance-tab');
+            const promptsTab = document.getElementById('prompts-tab');
+            
+            if (tabName === 'compliance') {
+                complianceTab.className = 'px-6 py-4 font-semibold text-blue-600 border-b-2 border-blue-600 bg-blue-50';
+                promptsTab.className = 'px-6 py-4 font-semibold text-gray-600 hover:text-blue-600 hover:bg-blue-50 transition-colors';
+                
+                document.getElementById('form-container').classList.remove('hidden');
+                document.getElementById('prompts-container').classList.add('hidden');
+            } else if (tabName === 'prompts') {
+                promptsTab.className = 'px-6 py-4 font-semibold text-blue-600 border-b-2 border-blue-600 bg-blue-50';
+                complianceTab.className = 'px-6 py-4 font-semibold text-gray-600 hover:text-blue-600 hover:bg-blue-50 transition-colors';
+                
+                document.getElementById('form-container').classList.add('hidden');
+                document.getElementById('prompts-container').classList.remove('hidden');
+                
+                // Load prompts when switching to prompts tab
+                loadPrompts();
+            }
+            
+            // Hide results and loading states
+            document.getElementById('results-container').classList.add('hidden');
+            document.getElementById('loading-container').classList.add('hidden');
+        }
+
+        // Prompt Management Functions
+        async function loadPrompts() {
+            const loading = document.getElementById('prompt-loading');
+            const list = document.getElementById('prompts-list');
+            const error = document.getElementById('prompt-error');
+            
+            loading.classList.remove('hidden');
+            list.innerHTML = '';
+            error.classList.add('hidden');
+            
+            try {
+                const response = await fetch('/prompts');
+                const data = await response.json();
+                
+                if (data.success) {
+                    displayPrompts(data.prompts);
+                } else {
+                    throw new Error(data.message || 'Failed to load prompts');
+                }
+            } catch (err) {
+                showPromptError('Failed to load prompts: ' + err.message);
+            } finally {
+                loading.classList.add('hidden');
+            }
+        }
+
+        function displayPrompts(prompts) {
+            const list = document.getElementById('prompts-list');
+            
+            Object.entries(prompts).forEach(([key, config]) => {
+                const promptDiv = document.createElement('div');
+                promptDiv.className = 'border border-gray-200 rounded-lg p-6';
+                promptDiv.innerHTML = `
+                    <div class="flex items-center justify-between mb-4">
+                        <div>
+                            <h3 class="text-xl font-bold text-gray-900">${config.name}</h3>
+                            <p class="text-gray-600 text-sm mt-1">${config.description}</p>
+                        </div>
+                        <div class="flex gap-2">
+                            <button onclick="resetPrompt('${key}')" 
+                                    class="text-orange-600 hover:text-orange-800 px-3 py-1 border border-orange-300 rounded-lg text-sm transition-colors">
+                                Reset to Default
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">System Prompt</label>
+                            <textarea id="system-${key}" rows="8" 
+                                      class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm font-mono"
+                                      placeholder="Enter system prompt...">${config.system_prompt}</textarea>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">User Template</label>
+                            <textarea id="template-${key}" rows="6" 
+                                      class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm font-mono"
+                                      placeholder="Enter user message template with {variables}...">${config.user_template}</textarea>
+                        </div>
+                        
+                        <div class="flex justify-end">
+                            <button onclick="savePrompt('${key}')" 
+                                    class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-semibold transition-colors">
+                                Save Changes
+                            </button>
+                        </div>
+                    </div>
+                `;
+                list.appendChild(promptDiv);
+            });
+            
+            lucide.createIcons();
+        }
+
+        async function savePrompt(promptKey) {
+            const systemPrompt = document.getElementById(`system-${promptKey}`).value;
+            const userTemplate = document.getElementById(`template-${promptKey}`).value;
+            
+            try {
+                const response = await fetch(`/prompts/${promptKey}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        system_prompt: systemPrompt,
+                        user_template: userTemplate
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showPromptSuccess('Prompt saved successfully!');
+                } else {
+                    throw new Error(data.detail || 'Failed to save prompt');
+                }
+            } catch (err) {
+                showPromptError('Failed to save prompt: ' + err.message);
+            }
+        }
+
+        async function resetPrompt(promptKey) {
+            if (!confirm('Are you sure you want to reset this prompt to default? This will overwrite your changes.')) {
+                return;
+            }
+            
+            try {
+                const response = await fetch(`/prompts/${promptKey}/reset`, {
+                    method: 'POST'
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showPromptSuccess('Prompt reset to default successfully!');
+                    // Reload prompts to show updated content
+                    loadPrompts();
+                } else {
+                    throw new Error(data.detail || 'Failed to reset prompt');
+                }
+            } catch (err) {
+                showPromptError('Failed to reset prompt: ' + err.message);
+            }
+        }
+
+        function showPromptError(message) {
+            const error = document.getElementById('prompt-error');
+            const errorText = document.getElementById('prompt-error-text');
+            errorText.textContent = message;
+            error.classList.remove('hidden');
+            
+            // Auto-hide after 5 seconds
+            setTimeout(() => {
+                error.classList.add('hidden');
+            }, 5000);
+        }
+
+        function showPromptSuccess(message) {
+            // Create a temporary success message
+            const container = document.getElementById('prompts-container');
+            const successDiv = document.createElement('div');
+            successDiv.className = 'fixed top-4 right-4 z-50 p-4 bg-green-50 border border-green-200 rounded-lg shadow-lg';
+            successDiv.innerHTML = `
+                <div class="flex items-center gap-2">
+                    <i data-lucide="check-circle" class="w-5 h-5 text-green-600"></i>
+                    <span class="text-green-800 font-medium">${message}</span>
+                </div>
+            `;
+            
+            document.body.appendChild(successDiv);
+            lucide.createIcons();
+            
+            // Auto-remove after 3 seconds
+            setTimeout(() => {
+                successDiv.remove();
+            }, 3000);
+        }
 
         function addMediaHit() {
             mediaHitCount++;

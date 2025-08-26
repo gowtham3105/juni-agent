@@ -13,6 +13,11 @@ class AnchorExtractor:
         # Using GPT-4 mini as requested by user
         self.client = OpenAI(api_key=Config.OPENAI_API_KEY)
         self.model = Config.OPENAI_MODEL
+        self.prompt_manager = None
+    
+    def set_prompt_manager(self, prompt_manager):
+        """Set the prompt manager for dynamic prompts"""
+        self.prompt_manager = prompt_manager
 
     def extract_anchors_and_summary(
             self, hit: MediaHit,
@@ -24,64 +29,47 @@ class AnchorExtractor:
         if not content:
             content = hit.title
 
-        prompt = f"""
-You are analyzing an adverse media article for compliance purposes. Your task is to:
-1. Create a 1-line neutral paraphrase of what the article alleges/reports
-2. Extract ALL identity anchors mentioned in the article
+        # Build profile summary for template
+        profile_summary = f"Name: {user_profile.full_name}, DOB: {user_profile.date_of_birth or 'not provided'}, City: {user_profile.city or 'not provided'}, Employer: {user_profile.employer or 'not provided'}"
 
-Subject profile for reference:
-- Name: {user_profile.full_name}
-- DOB: {user_profile.date_of_birth or 'not provided'}
-- City: {user_profile.city or 'not provided'}
-- Employer: {user_profile.employer or 'not provided'}
-
-Article to analyze:
+        # Get prompts from manager if available, otherwise use defaults
+        if self.prompt_manager:
+            prompt_config = self.prompt_manager.get_prompt("anchor_extraction")
+            system_prompt = prompt_config.get("system_prompt", "")
+            user_prompt = self.prompt_manager.format_user_prompt(
+                "anchor_extraction",
+                title=hit.title,
+                date=hit.date,
+                content=content,
+                profile_summary=profile_summary
+            )
+        else:
+            # Fallback to default prompts
+            system_prompt = "You are a compliance expert specializing in identity verification. Extract identity anchors precisely and create neutral summaries."
+            user_prompt = f"""Article to analyze:
 Title: {hit.title}
-Content: {content}
 Date: {hit.date}
-Source: {hit.source}
+Content: {content}
 
-Extract these types of identity anchors if present:
-- names (full names, first names, last names, nicknames)
-- employer (company names, organizations, job titles)
-- city (cities, locations, addresses)
-- dob (dates of birth, birth years)
-- age (explicit age mentions)
-- titles (professional titles, positions)
-- ids (passport numbers, ID numbers, license numbers)
+User profile being checked:
+{profile_summary}
 
-For each anchor found, provide:
-- anchor_type: one of [name, employer, city, dob, age, title, id]
-- value: the exact value found
-- confidence: 0.0-1.0 based on how clearly stated it is
-- source_text: the exact phrase where you found it
-
-Return your response in JSON format:
-{{
-    "brief_summary": "one-line neutral paraphrase of the article's main allegation",
-    "anchors": [
-        {{
-            "anchor_type": "employer",
-            "value": "ABC Corporation",
-            "confidence": 0.9,
-            "source_text": "worked at ABC Corporation as CFO"
-        }}
-    ]
-}}
-"""
+Extract all identity anchors from this article and create a neutral summary.
+Return JSON with:
+- "brief_summary": A neutral 1-2 sentence summary of what happened
+- "anchors": Array of identity anchors with:
+  - "anchor_type": one of [name, employer, city, dob, age, title, id] 
+  - "value": the extracted value
+  - "confidence": 0-1 confidence score
+  - "source_text": the text where this was found"""
 
         try:
             response = self.client.chat.completions.create(
                 model=self.model,
-                messages=[{
-                    "role":
-                    "system",
-                    "content":
-                    "You are a compliance expert specializing in identity verification. Extract identity anchors precisely and create neutral summaries."
-                }, {
-                    "role": "user",
-                    "content": prompt
-                }],
+                messages=[
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": user_prompt}
+                ],
                 response_format={"type": "json_object"},
                 temperature=0.3)
 

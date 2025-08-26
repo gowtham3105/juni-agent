@@ -13,6 +13,11 @@ class DecisionEngine:
     def __init__(self):
         self.config = Config()
         self.openai_client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
+        self.prompt_manager = None
+    
+    def set_prompt_manager(self, prompt_manager):
+        """Set the prompt manager for dynamic prompts"""
+        self.prompt_manager = prompt_manager
     
     def verify_anchors(self, user_profile: UserProfile, anchors: List[IdentityAnchor], article_date: str) -> List[AnchorVerification]:
         """Verify all anchors against the user profile in a single AI call"""

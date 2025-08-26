@@ -22,6 +22,12 @@ class ComplianceAgent:
         self.progress_callback = progress_callback
         self.step_counter = 0
     
+    def set_prompt_manager(self, prompt_manager):
+        """Update all components to use the given prompt manager"""
+        self.anchor_extractor.set_prompt_manager(prompt_manager)
+        self.name_matcher.set_prompt_manager(prompt_manager)
+        self.decision_engine.set_prompt_manager(prompt_manager)
+    
     def _log_progress(self, message: str):
         """Log progress step and call callback if provided"""
         self.step_counter += 1

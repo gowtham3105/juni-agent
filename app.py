@@ -17,6 +17,7 @@ import re
 
 from models import UserProfile, MediaHit, ComplianceResult, HitType
 from compliance_agent import ComplianceAgent
+from prompt_manager import PromptManager
 
 app = FastAPI(title="AI Compliance Agent", version="1.0.0")
 
@@ -32,8 +33,10 @@ app.add_middleware(
 # Serve static files
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
-# Initialize compliance agent
+# Initialize compliance agent and prompt manager
+prompt_manager = PromptManager()
 agent = ComplianceAgent()
+agent.set_prompt_manager(prompt_manager)
 
 # Progress tracking for real-time updates
 progress_logs = []
@@ -241,6 +244,70 @@ async def fetch_article_from_url(request: Dict[str, str]):
     except Exception as e:
         raise HTTPException(status_code=500,
                             detail=f"Error processing URL: {str(e)}")
+
+
+# Prompt Management Endpoints
+class PromptUpdateRequest(BaseModel):
+    """Request model for updating prompts"""
+    system_prompt: Optional[str] = None
+    user_template: Optional[str] = None
+
+
+@app.get("/prompts")
+async def get_all_prompts():
+    """Get all configured prompts"""
+    try:
+        return {"success": True, "prompts": prompt_manager.get_all_prompts()}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error fetching prompts: {str(e)}")
+
+
+@app.get("/prompts/{prompt_key}")
+async def get_prompt(prompt_key: str):
+    """Get a specific prompt configuration"""
+    try:
+        prompt_config = prompt_manager.get_prompt(prompt_key)
+        if not prompt_config:
+            raise HTTPException(status_code=404, detail=f"Prompt '{prompt_key}' not found")
+        return {"success": True, "prompt": prompt_config}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error fetching prompt: {str(e)}")
+
+
+@app.put("/prompts/{prompt_key}")
+async def update_prompt(prompt_key: str, request: PromptUpdateRequest):
+    """Update a specific prompt configuration"""
+    try:
+        prompt_manager.update_prompt(
+            prompt_key=prompt_key,
+            system_prompt=request.system_prompt,
+            user_template=request.user_template
+        )
+        
+        # Update all agent components to use the new prompt manager
+        agent.set_prompt_manager(prompt_manager)
+        
+        return {"success": True, "message": f"Prompt '{prompt_key}' updated successfully"}
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error updating prompt: {str(e)}")
+
+
+@app.post("/prompts/{prompt_key}/reset")
+async def reset_prompt(prompt_key: str):
+    """Reset a prompt to its default configuration"""
+    try:
+        prompt_manager.reset_prompt(prompt_key)
+        
+        # Update all agent components to use the new prompt manager
+        agent.set_prompt_manager(prompt_manager)
+        
+        return {"success": True, "message": f"Prompt '{prompt_key}' reset to default"}
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error resetting prompt: {str(e)}")
 
 
 if __name__ == "__main__":

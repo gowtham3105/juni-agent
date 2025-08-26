@@ -12,6 +12,11 @@ class NameMatcher:
     def __init__(self):
         self.config = Config()
         self.openai_client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
+        self.prompt_manager = None
+    
+    def set_prompt_manager(self, prompt_manager):
+        """Set the prompt manager for dynamic prompts"""
+        self.prompt_manager = prompt_manager
     
     def analyze_name_match(self, user_profile: UserProfile, anchors: List[IdentityAnchor]) -> Tuple[bool, str, int]:
         """
@@ -65,14 +70,19 @@ class NameMatcher:
     def _ai_name_match(self, user_names: List[str], article_names: List[str]) -> dict:
         """Use AI to intelligently match names, handling nicknames, cultural variants, etc."""
         try:
-            # the newest OpenAI model is "gpt-5" which was released August 7, 2025.
-            # do not change this unless explicitly requested by the user
-            response = self.openai_client.chat.completions.create(
-                model="gpt-5",
-                messages=[
-                    {
-                        "role": "system", 
-                        "content": """You are an expert at name matching for compliance purposes. 
+            # Get prompts from manager if available, otherwise use defaults
+            if self.prompt_manager:
+                prompt_config = self.prompt_manager.get_prompt("name_matching")
+                system_prompt = prompt_config.get("system_prompt", "")
+                user_template = prompt_config.get("user_template", "")
+                user_prompt = self.prompt_manager.format_user_prompt(
+                    "name_matching",
+                    user_names=user_names,
+                    article_names=article_names
+                )
+            else:
+                # Fallback to default prompts
+                system_prompt = """You are an expert at name matching for compliance purposes. 
                         You understand nicknames (Bob=Robert, Jim=James), cultural name variations, 
                         transliterations, maiden names, professional vs legal names, and name order differences.
                         
@@ -92,14 +102,18 @@ class NameMatcher:
                         - "matched_name": string (the article name that matched)
                         - "reasoning": string explaining the match logic
                         """
-                    },
-                    {
-                        "role": "user",
-                        "content": f"""USER PROFILE NAMES: {user_names}
+                user_prompt = f"""USER PROFILE NAMES: {user_names}
                         ARTICLE NAMES: {article_names}
                         
                         Could any article name refer to the same person as the user profile?"""
-                    }
+
+            # the newest OpenAI model is "gpt-5" which was released August 7, 2025.
+            # do not change this unless explicitly requested by the user
+            response = self.openai_client.chat.completions.create(
+                model="gpt-5",
+                messages=[
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": user_prompt}
                 ],
                 response_format={"type": "json_object"}
             )
