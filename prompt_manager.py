@@ -60,8 +60,6 @@ ARTICLE NAMES: {article_names}
 Could any article name refer to the same person as the user profile?"""
             },
             
-
-            
             "batch_anchor_verification": {
                 "name": "Batch Anchor Verification",
                 "description": "Efficiently verifies multiple anchors against user profile in a single AI call",
