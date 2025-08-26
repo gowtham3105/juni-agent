@@ -33,6 +33,10 @@ The system uses Pydantic models for type safety and validation:
 
 Enums define classification systems for linkage decisions (YES/MAYBE/NO), outcome types (allegation, charged, convicted, etc.), and risk categories (fraud, corruption, money laundering, etc.).
 
+## Recent Architectural Changes (August 26, 2025)
+
+**Simplified Anchor Verification Architecture**: Removed single anchor verification fallback mechanism to rely entirely on batch AI processing for cleaner, more consistent behavior. The system now uses only `_ai_verify_all_anchors()` for all anchor verification, eliminating the complex multi-tier fallback system while maintaining efficiency through batch processing.
+
 ## AI Integration
 
 The system integrates with OpenAI's GPT-5 model for natural language processing tasks. The AI is used specifically for:

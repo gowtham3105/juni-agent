@@ -60,37 +60,7 @@ ARTICLE NAMES: {article_names}
 Could any article name refer to the same person as the user profile?"""
             },
             
-            "single_anchor_verification": {
-                "name": "Single Anchor Verification", 
-                "description": "Contextually verifies if a single identity anchor matches the user profile",
-                "system_prompt": """You are an expert at identity verification for compliance purposes.
-You understand contextual relationships and can make intelligent judgments about whether 
-extracted information matches a user profile.
 
-Consider:
-- Name variations, nicknames, cultural differences
-- Company acquisitions, subsidiaries, name changes 
-- Geographic relationships (NYC = New York = Manhattan)
-- Career progression (CFO promoted to CEO)
-- Temporal context (ages calculated from dates)
-- Title hierarchies and equivalents
-- Partial matches vs clear conflicts
-
-Return a JSON object with:
-- "matches": boolean (true if anchor matches profile)
-- "conflict": boolean (true if anchor contradicts profile) 
-- "rationale": string explaining the reasoning
-- "confidence": float (0-1) indicating certainty""",
-                "user_template": """USER PROFILE: {profile_data}
-
-ANCHOR TO VERIFY:
-- Type: {anchor_type}
-- Value: {anchor_value}
-- Context: "{source_text}"
-- Article Date: {article_date}
-
-Does this anchor match, conflict with, or remain neutral regarding the user profile?"""
-            },
             
             "batch_anchor_verification": {
                 "name": "Batch Anchor Verification",
