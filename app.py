@@ -14,10 +14,14 @@ from datetime import datetime
 import requests
 from bs4 import BeautifulSoup
 import re
+import dotenv
+
+dotenv.load_dotenv()
 
 from models import UserProfile, MediaHit, ComplianceResult, HitType
 from compliance_agent import ComplianceAgent
 from prompt_manager import PromptManager
+
 
 app = FastAPI(title="AI Compliance Agent", version="1.0.0")
 
@@ -121,42 +125,78 @@ async def get_progress():
 
 @app.get("/compliance/sample")
 async def get_sample_data():
+    # """Get sample data for testing"""
+    # user_profile = UserProfile(full_name="John Michael Smith",
+    #                            date_of_birth="1985-03-15",
+    #                            city="New York",
+    #                            employer="ABC Financial Corp",
+    #                            id_data={
+    #                                "passport": "P12345678",
+    #                                "ssn": "XXX-XX-1234"
+    #                            },
+    #                            aliases=["John Smith", "J.M. Smith"])
+    #
+    # media_hits = [
+    #     MediaHit(
+    #         title="ABC Financial Corp CFO Charged with Securities Fraud",
+    #         snippet=
+    #         "John Smith, 39, Chief Financial Officer at ABC Financial Corp in New York, was charged yesterday with securities fraud by federal prosecutors.",
+    #         full_text=
+    #         "Federal prosecutors announced charges against John Michael Smith, age 39, the Chief Financial Officer of ABC Financial Corp based in New York City. Smith is accused of securities fraud in connection with the alleged manipulation of quarterly earnings reports submitted to the SEC between 2020 and 2023. According to court documents filed in the Southern District of New York, Smith allegedly worked with other executives to inflate revenue figures and hide mounting losses. 'This case represents a serious breach of fiduciary duty,' said prosecutor Jane Wilson. Smith's attorney declined to comment. ABC Financial Corp is a mid-sized investment firm with offices in Manhattan. The company's stock has fallen 40% since the charges were announced. Smith joined ABC Financial in 2018 as CFO after working at rival firm XYZ Capital. Court records show Smith was born March 15, 1985 and resides in Manhattan.",
+    #         date="2024-11-15",
+    #         source="Financial Times",
+    #         url="https://ft.com/content/abc-cfo-charged"),
+    #     MediaHit(
+    #         title="Investment Firm Executive Denies Fraud Allegations",
+    #         snippet=
+    #         "John Smith of ABC Financial Corp denies all allegations of securities fraud. His lawyer says the charges are unfounded and they will fight them vigorously in court.",
+    #         date="2024-11-16",
+    #         source="Reuters",
+    #         url="https://reuters.com/business/abc-executive-denies"),
+    #     MediaHit(
+    #         title="Local Man Arrested for DUI",
+    #         snippet=
+    #         "John Smith, 45, of Boston was arrested for driving under the influence on Highway 95. Smith works as a mechanic at Joe's Auto Repair.",
+    #         date="2024-11-10",
+    #         source="Boston Herald",
+    #         url="https://bostonherald.com/local/dui-arrest")
+    # ]
+
     """Get sample data for testing"""
-    user_profile = UserProfile(full_name="John Michael Smith",
-                               date_of_birth="1985-03-15",
-                               city="New York",
-                               employer="ABC Financial Corp",
-                               id_data={
-                                   "passport": "P12345678",
-                                   "ssn": "XXX-XX-1234"
-                               },
-                               aliases=["John Smith", "J.M. Smith"])
+    user_profile = UserProfile(full_name="Syed Mohammed Hashim",
+                           date_of_birth="1987-09-25",
+                           city="US",
+                           employer="",
+                           id_data={
+
+                           },
+                           aliases=[])
 
     media_hits = [
         MediaHit(
-            title="ABC Financial Corp CFO Charged with Securities Fraud",
-            snippet=
-            "John Smith, 39, Chief Financial Officer at ABC Financial Corp in New York, was charged yesterday with securities fraud by federal prosecutors.",
-            full_text=
-            "Federal prosecutors announced charges against John Michael Smith, age 39, the Chief Financial Officer of ABC Financial Corp based in New York City. Smith is accused of securities fraud in connection with the alleged manipulation of quarterly earnings reports submitted to the SEC between 2020 and 2023. According to court documents filed in the Southern District of New York, Smith allegedly worked with other executives to inflate revenue figures and hide mounting losses. 'This case represents a serious breach of fiduciary duty,' said prosecutor Jane Wilson. Smith's attorney declined to comment. ABC Financial Corp is a mid-sized investment firm with offices in Manhattan. The company's stock has fallen 40% since the charges were announced. Smith joined ABC Financial in 2018 as CFO after working at rival firm XYZ Capital. Court records show Smith was born March 15, 1985 and resides in Manhattan.",
-            date="2024-11-15",
-            source="Financial Times",
-            url="https://ft.com/content/abc-cfo-charged"),
+            url="https://punjabpolice.gov.pk/node/16975"
+        ),
         MediaHit(
-            title="Investment Firm Executive Denies Fraud Allegations",
-            snippet=
-            "John Smith of ABC Financial Corp denies all allegations of securities fraud. His lawyer says the charges are unfounded and they will fight them vigorously in court.",
-            date="2024-11-16",
-            source="Reuters",
-            url="https://reuters.com/business/abc-executive-denies"),
+            url="https://zeenews.india.com/news/world/fifth-accused-in-daniel-pearl-killing-nabbed_811566.html"
+        ),
         MediaHit(
-            title="Local Man Arrested for DUI",
-            snippet=
-            "John Smith, 45, of Boston was arrested for driving under the influence on Highway 95. Smith works as a mechanic at Joe's Auto Repair.",
-            date="2024-11-10",
-            source="Boston Herald",
-            url="https://bostonherald.com/local/dui-arrest")
-    ]
+            url="https://www.khaama.com/jawzjan-top-taliban-leaders-killed-in-afghan-nato-operations-1637/"
+        ),
+        MediaHit(
+            url="http://nation.com.pk/24-Oct-2014/suspect-in-daniel-pearl-murder-case-freed"
+        ),
+        MediaHit(
+            url="https://www.deccanherald.com/amp/story/india/karnataka/bengaluru/three-arrested-for-availing-rs-2-3-crore-bank-loan-using-fake-documents-3111656"
+        ),
+        MediaHit(
+            url="http://nation.com.pk/international/03-Feb-2009/Top-UN-officials-urge-immediate-release-of-kidnapped-refugee-official"
+        ),
+        MediaHit(
+            url="https://www.undispatch.com/tag/un-news/page/9/"
+        )
+
+
+]
 
     return {
         "user_profile": user_profile.model_dump(),

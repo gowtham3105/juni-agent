@@ -1,6 +1,10 @@
+import time
 from typing import List, Tuple
+
+import config
 from models import UserProfile, IdentityAnchor
 from config import Config
+from prompt_manager import PromptManager
 from utils import normalize_name, calculate_name_similarity
 import os
 import json
@@ -12,7 +16,7 @@ class NameMatcher:
     def __init__(self):
         self.config = Config()
         self.openai_client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
-        self.prompt_manager = None
+        self.prompt_manager = PromptManager()
     
     def set_prompt_manager(self, prompt_manager):
         """Set the prompt manager for dynamic prompts"""
@@ -71,52 +75,28 @@ class NameMatcher:
         """Use AI to intelligently match names, handling nicknames, cultural variants, etc."""
         try:
             # Get prompts from manager if available, otherwise use defaults
-            if self.prompt_manager:
-                prompt_config = self.prompt_manager.get_prompt("name_matching")
-                system_prompt = prompt_config.get("system_prompt", "")
-                user_template = prompt_config.get("user_template", "")
-                user_prompt = self.prompt_manager.format_user_prompt(
-                    "name_matching",
-                    user_names=user_names,
-                    article_names=article_names
-                )
-            else:
-                # Fallback to default prompts
-                system_prompt = """You are an expert at name matching for compliance purposes. 
-                        You understand nicknames (Bob=Robert, Jim=James), cultural name variations, 
-                        transliterations, maiden names, professional vs legal names, and name order differences.
-                        
-                        Analyze if any names from the article could refer to the same person as in the user profile.
-                        Consider:
-                        - Common nicknames and diminutives
-                        - Cultural name variations (José vs Jose)
-                        - Name order (Li Wei vs Wei Li)  
-                        - Professional vs legal names (Dr. Smith vs John Smith)
-                        - Maiden/married names
-                        - Middle name variations
-                        - Transliteration differences
-                        
-                        Return a JSON object with:
-                        - "is_match": boolean
-                        - "confidence": float (0-1)
-                        - "matched_name": string (the article name that matched)
-                        - "reasoning": string explaining the match logic
-                        """
-                user_prompt = f"""USER PROFILE NAMES: {user_names}
-                        ARTICLE NAMES: {article_names}
-                        
-                        Could any article name refer to the same person as the user profile?"""
+            prompt_config = self.prompt_manager.get_prompt("name_matching")
+            system_prompt = prompt_config.get("system_prompt", "")
+            user_prompt = self.prompt_manager.format_user_prompt(
+                "name_matching",
+                user_names=user_names,
+                article_names=article_names
+            )
+
 
             # the newest OpenAI model is "gpt-5" which was released August 7, 2025.
             # do not change this unless explicitly requested by the user
+            st = time.time()
             response = self.openai_client.chat.completions.create(
-                model="gpt-5",
+                model=Config.OPENAI_MODEL,
                 messages=[
                     {"role": "system", "content": system_prompt},
                     {"role": "user", "content": user_prompt}
                 ],
                 response_format={"type": "json_object"}
             )
+
+            print(f"Name matching took {time.time() - st:.2f}s")
             
             result = json.loads(response.choices[0].message.content)
             return {

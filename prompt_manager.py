@@ -1,12 +1,13 @@
 from typing import Dict, Any
 import json
 
+
 class PromptManager:
     """Manages all AI prompts used throughout the compliance system"""
-    
+
     def __init__(self):
         self._prompts = self._get_default_prompts()
-    
+
     def _get_default_prompts(self) -> Dict[str, Dict[str, Any]]:
         """Get the default prompts for all AI operations"""
         return {
@@ -19,9 +20,6 @@ Title: {title}
 Date: {date}
 Content: {content}
 
-User profile being checked:
-{profile_summary}
-
 Extract all identity anchors from this article and create a neutral summary.
 Return JSON with:
 - "brief_summary": A neutral 1-2 sentence summary of what happened
@@ -31,7 +29,7 @@ Return JSON with:
   - "confidence": 0-1 confidence score
   - "source_text": the text where this was found"""
             },
-            
+
             "name_matching": {
                 "name": "Name Matching",
                 "description": "Intelligently matches names handling nicknames, cultural variants, and name variations",
@@ -59,7 +57,7 @@ ARTICLE NAMES: {article_names}
 
 Could any article name refer to the same person as the user profile?"""
             },
-            
+
             "batch_anchor_verification": {
                 "name": "Batch Anchor Verification",
                 "description": "Efficiently verifies multiple anchors against user profile in a single AI call",
@@ -81,8 +79,10 @@ Return a JSON object with:
   - "index": anchor index
   - "matches": boolean (true if anchor matches profile)
   - "conflict": boolean (true if anchor contradicts profile) 
-  - "rationale": string explaining the reasoning""",
+  - "rationale": string explaining the reasoning
+   - "confidence": How strong is the match (0-1)""",
                 "user_template": """USER PROFILE: {profile_data}
+ 
 
 ANCHORS TO VERIFY: {anchors_data}
 ARTICLE DATE: {article_date}
@@ -90,38 +90,38 @@ ARTICLE DATE: {article_date}
 For each anchor, determine if it matches or conflicts with the user profile."""
             }
         }
-    
+
     def get_prompt(self, prompt_key: str) -> Dict[str, Any]:
         """Get a specific prompt configuration"""
         return self._prompts.get(prompt_key, {})
-    
+
     def get_all_prompts(self) -> Dict[str, Dict[str, Any]]:
         """Get all prompt configurations"""
         return self._prompts.copy()
-    
+
     def update_prompt(self, prompt_key: str, system_prompt: str = None, user_template: str = None):
         """Update a specific prompt"""
         if prompt_key not in self._prompts:
             raise ValueError(f"Unknown prompt key: {prompt_key}")
-        
+
         if system_prompt is not None:
             self._prompts[prompt_key]["system_prompt"] = system_prompt
-        
+
         if user_template is not None:
             self._prompts[prompt_key]["user_template"] = user_template
-    
+
     def reset_prompt(self, prompt_key: str):
         """Reset a prompt to default"""
         defaults = self._get_default_prompts()
         if prompt_key in defaults:
             self._prompts[prompt_key] = defaults[prompt_key]
-    
+
     def format_user_prompt(self, prompt_key: str, **kwargs) -> str:
         """Format a user prompt template with provided variables"""
         prompt_config = self.get_prompt(prompt_key)
         if not prompt_config:
             raise ValueError(f"Unknown prompt key: {prompt_key}")
-        
+
         template = prompt_config.get("user_template", "")
         try:
             return template.format(**kwargs)

@@ -6,7 +6,7 @@ class Config:
     
     # OpenAI settings
     OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "default_key")
-    OPENAI_MODEL = "gpt-4o-mini"  # Using GPT-4 mini as requested by user
+    OPENAI_MODEL = "gpt-4.1-mini"  # Using GPT-4 mini as requested by user
     
     # Name matching thresholds
     COMMON_NAMES_THRESHOLD = 2  # Require >=2 anchors for common names

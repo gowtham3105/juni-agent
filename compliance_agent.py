@@ -48,13 +48,9 @@ class ComplianceAgent:
             article_analysis = self._analyze_single_article(user_profile, hit)
             analyzed_articles.append(article_analysis)
         
-        # Step 14) Cluster duplicates (simplified - no actual clustering implemented)
-        self._log_progress(f"🔄 Checking for duplicate articles...")
-        deduplicated_articles = self._cluster_duplicates(analyzed_articles)
-        
         # Step 15) Case roll-up - keep only yes/maybe articles
-        accepted_articles = [a for a in deduplicated_articles if a.linkage_decision in [LinkageDecision.YES, LinkageDecision.MAYBE]]
-        rejected_articles = [a for a in deduplicated_articles if a.linkage_decision == LinkageDecision.NO]
+        accepted_articles = [a for a in analyzed_articles if a.linkage_decision in [LinkageDecision.YES, LinkageDecision.MAYBE]]
+        rejected_articles = [a for a in analyzed_articles if a.linkage_decision == LinkageDecision.NO]
         self._log_progress(f"📋 Case roll-up: {len(accepted_articles)} matched, {len(rejected_articles)} rejected")
         
         # Step 16) Overall decision logic
@@ -63,21 +59,22 @@ class ComplianceAgent:
         self._log_progress(f"🏁 Final Decision: {final_decision.upper()} (score: {decision_score}/100)")
         
         # Step 17) Targeted ask
-        targeted_ask = self._generate_targeted_ask(accepted_articles) if final_decision == "escalate" else None
+        # targeted_ask = self._generate_targeted_ask(accepted_articles) if final_decision == "escalate" else None
         
         # Step 18) Final memo
-        final_memo = self._generate_final_memo(user_profile, accepted_articles, final_decision, targeted_ask or "")
+        final_memo = self._generate_final_memo(user_profile, accepted_articles, final_decision, "")
         
         return ComplianceResult(
             user_profile=user_profile,
             total_hits=len(media_hits),
-            analyzed_articles=deduplicated_articles,
+            analyzed_articles=analyzed_articles,
             matched_hits=accepted_articles,
             non_matched_hits=rejected_articles,
             final_decision=final_decision,
             decision_score=decision_score,
             overall_rationale=overall_rationale,
-            targeted_ask=targeted_ask,
+            # targeted_ask=targeted_ask,
+            targeted_ask="",
             final_memo=final_memo
         )
     
@@ -87,7 +84,7 @@ class ComplianceAgent:
         # Step 2) Read article & Step 3) Collect anchors
         self._log_progress(f"📄 Analyzing article: '{hit.title}'")
         self._log_progress(f"🤖 AI extracting identity anchors from article content...")
-        brief_summary, anchors = self.anchor_extractor.extract_anchors_and_summary(hit, user_profile)
+        brief_summary, anchors = self.anchor_extractor.extract_anchors_and_summary(hit)
         self._log_progress(f"✅ Found {len(anchors)} identity anchors: {', '.join([f'{a.anchor_type}:{a.value}' for a in anchors[:3]])}{' ...' if len(anchors) > 3 else ''}")
         
         # Step 4) Name match sanity
@@ -111,7 +108,10 @@ class ComplianceAgent:
             user_profile, anchors, verifications, contradictions, required_anchors, has_name_match
         )
         self._log_progress(f"📊 Decision: {linkage_decision.value} - {linkage_rationale}")
-        
+
+
+
+        # ----------------------------------------------------
         # Skip outcome and category classification as requested by user
         outcome_type = OutcomeType.NONE
         category_type = CategoryType.NONE
@@ -124,11 +124,11 @@ class ComplianceAgent:
         recency_bucket = get_recency_bucket(hit.date)
         recency_note = f"Recency: {recency_bucket} ({hit.date})"
         
-        # Step 13) Per-article rationale (always 3 lines)
-        rationale = self._generate_article_rationale(
-            outcome_type, category_type, brief_summary, linkage_rationale, 
-            credibility_note, recency_note, hit.url or ""
-        )
+        # # Step 13) Per-article rationale (always 3 lines)
+        # rationale = self._generate_article_rationale(
+        #     outcome_type, category_type, brief_summary, linkage_rationale,
+        #     credibility_note, recency_note, hit.url or ""
+        # )
         
         return ArticleAnalysis(
             hit=hit,
@@ -141,7 +141,7 @@ class ComplianceAgent:
             category_type=category_type,
             credibility_note=credibility_note,
             recency_note=recency_note,
-            rationale=rationale
+            rationale=''
         )
     
     def _get_credibility_tier(self, score: int) -> str:
@@ -166,12 +166,7 @@ class ComplianceAgent:
         line3 = f"{credibility}. {recency}. URL: {url or 'not provided'}"
         
         return f"{line1}\n{line2}\n{line3}"
-    
-    def _cluster_duplicates(self, articles: List[ArticleAnalysis]) -> List[ArticleAnalysis]:
-        """Step 14: Cluster duplicate articles (simplified implementation)"""
-        # For now, just return as-is. In production, this would implement
-        # sophisticated duplicate detection based on title similarity, URLs, etc.
-        return articles
+
     
     def _make_overall_decision(self, accepted_articles: List[ArticleAnalysis]) -> tuple[str, int, str]:
         """Step 16: Make overall decision based on accepted articles"""

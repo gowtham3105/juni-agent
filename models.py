@@ -47,13 +47,13 @@ class UserProfile(BaseModel):
     
 class MediaHit(BaseModel):
     """Adverse media hit from vendor"""
-    title: str
+    title: Optional[str] = None
     snippet: Optional[str] = None
     full_text: Optional[str] = None
-    date: str  # Article date
-    source: str  # Publisher
+    date: Optional[str] = None  # Article date
+    source: Optional[str] = None # Publisher
     url: Optional[str] = None
-    hit_type: HitType = HitType.ADVERSE_MEDIA
+    hit_type: Optional[HitType] = HitType.ADVERSE_MEDIA
 
 class IdentityAnchor(BaseModel):
     """Extracted identity anchor from article"""

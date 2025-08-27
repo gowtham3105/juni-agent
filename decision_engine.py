@@ -1,6 +1,10 @@
+import time
 from typing import List, Tuple
 from datetime import datetime, date
+
+import config
 from models import UserProfile, IdentityAnchor, AnchorVerification, LinkageDecision
+from prompt_manager import PromptManager
 from utils import parse_date, calculate_age, extract_age_from_text, normalize_name
 from config import Config
 import os
@@ -13,7 +17,7 @@ class DecisionEngine:
     def __init__(self):
         self.config = Config()
         self.openai_client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
-        self.prompt_manager = None
+        self.prompt_manager = PromptManager()
     
     def set_prompt_manager(self, prompt_manager):
         """Set the prompt manager for dynamic prompts"""
@@ -107,54 +111,28 @@ class DecisionEngine:
                 })
             
             # Get prompts from manager if available, otherwise use defaults
-            if self.prompt_manager:
-                prompt_config = self.prompt_manager.get_prompt("batch_anchor_verification")
-                system_prompt = prompt_config.get("system_prompt", "")
-                user_prompt = self.prompt_manager.format_user_prompt(
-                    "batch_anchor_verification",
-                    profile_data=json.dumps(profile_data, default=str),
-                    anchors_data=json.dumps(anchors_data, default=str),
-                    article_date=article_date
-                )
-            else:
-                # Fallback to default prompts if prompt manager not available
-                system_prompt = """You are an expert at identity verification for compliance purposes.
-
-For each anchor, determine if it matches, contradicts, or is neutral regarding the user profile.
-Consider contextual relationships, temporal context, and intelligent matching:
-
-- Name variations, nicknames, cultural differences
-- Company acquisitions, subsidiaries, name changes 
-- Geographic relationships (NYC = New York = Manhattan)
-- Career progression (CFO promoted to CEO)
-- Temporal context (ages calculated from dates)
-- Title hierarchies and equivalents
-- Partial matches vs clear conflicts
-
-Return a JSON object with:
-- "verifications": array of objects, one per anchor with:
-  - "index": anchor index
-  - "matches": boolean (true if anchor matches profile)
-  - "conflict": boolean (true if anchor contradicts profile) 
-  - "rationale": string explaining the reasoning"""
-
-                user_prompt = f"""USER PROFILE: {json.dumps(profile_data, default=str)}
-
-ANCHORS TO VERIFY: {json.dumps(anchors_data, default=str)}
-ARTICLE DATE: {article_date}
-
-For each anchor, determine if it matches or conflicts with the user profile."""
+            prompt_config = self.prompt_manager.get_prompt("batch_anchor_verification")
+            system_prompt = prompt_config.get("system_prompt", "")
+            user_prompt = self.prompt_manager.format_user_prompt(
+                "batch_anchor_verification",
+                profile_data=json.dumps(profile_data, default=str),
+                anchors_data=json.dumps(anchors_data, default=str),
+                article_date=article_date
+            )
 
             # the newest OpenAI model is "gpt-5" which was released August 7, 2025.
             # do not change this unless explicitly requested by the user
+            st = time.time()
             response = self.openai_client.chat.completions.create(
-                model="gpt-5",
+                model=Config.OPENAI_MODEL,
                 messages=[
                     {"role": "system", "content": system_prompt},
                     {"role": "user", "content": user_prompt}
                 ],
                 response_format={"type": "json_object"}
             )
+
+            print(f"Batch anchor verification took {time.time() - st:.2f}s")
             
             result = json.loads(response.choices[0].message.content)
             verifications = []
